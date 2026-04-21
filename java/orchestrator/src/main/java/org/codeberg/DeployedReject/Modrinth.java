@@ -14,7 +14,6 @@ import java.nio.charset.StandardCharsets;
 import java.io.FileOutputStream;
 
 public class Modrinth {
-  ErrorHelper er = new ErrorHelper();
   String type;
   String query = "mods";
   String version;
@@ -94,22 +93,22 @@ public class Modrinth {
               downloadedFile.close();
             } else {
 
-              er.errorJson("Website returned status code" + result.statusCode());
+              ErrorHelper.errorJson("Website returned status code" + result.statusCode());
             }
           } catch (Exception e) {
-            er.errorJson(e.toString());
+            ErrorHelper.errorJson(e.toString());
           }
 
         } else {
-          er.errorJson("No valid Link");
+          ErrorHelper.errorJson("No valid Link");
         }
 
       } else {
 
-        er.errorJson("Website returned status code" + result.statusCode());
+        ErrorHelper.errorJson("Website returned status code" + result.statusCode());
       }
     } catch (Exception e) {
-      er.errorJson(e.toString());
+      ErrorHelper.errorJson(e.toString());
     }
 
   }
@@ -148,10 +147,10 @@ public class Modrinth {
         System.out.println(response);
       } else {
 
-        er.errorJson("Website returned status code" + result.statusCode());
+        ErrorHelper.errorJson("Website returned status code" + result.statusCode());
       }
     } catch (Exception e) {
-      er.errorJson(e.toString());
+      ErrorHelper.errorJson(e.toString());
     }
 
   }
