@@ -12,7 +12,12 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>2.11.0</version>
-        </dependency>
+    </dependency>
+      <dependency>
+    <groupId>org.graalvm.buildtools</groupId>
+    <artifactId>native-maven-plugin</artifactId>
+    <version>0.10.1</version>
+</dependency>
     </dependencies>
 
     <properties>
@@ -74,9 +79,16 @@
                             <mainClass>org.codeberg.DeployedReject.Main</mainClass>
                             <imageName>${project.artifactId}</imageName>
                             <fallback>false</fallback> 
-              <buildArgs>
-        <buildArg>-H:IncludeResources=config.properties</buildArg>
-    </buildArgs>
+                            <buildArgs>
+                                <buildArg>-H:IncludeResources=config.properties</buildArg>
+                                
+                                <buildArg>-Os</buildArg>
+                                <buildArg>--gc=serial</buildArg>
+                                <buildArg>-H:+StripDebugInfo</buildArg>
+                                
+                                <buildArg>--static</buildArg>
+                                <buildArg>--libc=musl</buildArg>
+                            </buildArgs>
                         </configuration>
                     </plugin>
                 </plugins>
