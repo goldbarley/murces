@@ -1,0 +1,3 @@
+[submodule "c/precursor"]
+	path = c/precursor
+	url = ../precursor.git
