@@ -1,3 +1,4 @@
 # murces
 
-Minecraft server TUI.
+Minecraft server TUI and background service.
+
