@@ -46,7 +46,7 @@ public class Main {
       else if (type.equals("server")) {
 
         if (!(request.has("gameVersion") && request.has("serverVersion") && request.has("serverType")
-            & request.has("subType"))) {
+            && request.has("subType"))) {
           errorHelper.errorJson("Missing One Or More Necessary Parameters.");
           continue;
         }
