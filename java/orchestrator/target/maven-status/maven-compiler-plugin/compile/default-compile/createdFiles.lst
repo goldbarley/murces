@@ -1,4 +1,6 @@
+org/codeberg/DeployedReject/ServerDownloader.class
+org/codeberg/DeployedReject/CurseForge.class
+org/codeberg/DeployedReject/Communicator.class
 org/codeberg/DeployedReject/Main.class
 org/codeberg/DeployedReject/ErrorHelper.class
 org/codeberg/DeployedReject/Modrinth.class
-org/codeberg/DeployedReject/ServerDownloader.class

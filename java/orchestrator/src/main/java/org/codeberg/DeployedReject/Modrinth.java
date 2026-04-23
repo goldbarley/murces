@@ -144,7 +144,7 @@ public class Modrinth {
       if (result.statusCode() == 200) {
 
         JsonObject response = JsonParser.parseString(result.body()).getAsJsonObject();
-        Communicator.printer(response;
+        Communicator.printer(response);
       } else {
 
         ErrorHelper.errorJson("Website returned status code" + result.statusCode());

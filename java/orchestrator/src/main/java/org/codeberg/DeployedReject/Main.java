@@ -1,4 +1,3 @@
-
 package org.codeberg.DeployedReject;
 
 import java.util.Properties;
@@ -7,7 +6,6 @@ import com.google.gson.JsonObject;
 import java.lang.System;
 import com.google.gson.JsonParser;
 import java.io.InputStream;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -27,6 +25,7 @@ public class Main {
     Scanner sc = new Scanner(System.in);
 
     ExecutorService worker = Executors.newCachedThreadPool();
+    Communicator.startPrinter();
 
     while (true) {
 
@@ -79,7 +78,14 @@ public class Main {
             mb.email = email;
             mb.modrinthHandler();
           } else if (modBrowser.equals("curseForge")) {
-            // ToDo
+            CurseForge cf = new CurseForge();
+            cf.type = request.get("subType").getAsString();
+            cf.modName = request.get("modName").getAsString();
+            cf.version = request.get("version").getAsString();
+            cf.loader = request.get("modLoader").getAsString();
+            cf.API = curseAPI;
+            cf.curseForgeHandler();
+
           }
         } else {
           ErrorHelper.errorJson("Invalid Type");

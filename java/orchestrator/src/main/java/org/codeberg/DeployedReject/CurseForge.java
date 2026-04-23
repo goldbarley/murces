@@ -1,43 +1,78 @@
 package org.codeberg.DeployedReject;
 
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+import java.net.http.HttpResponse;
 
 public class CurseForge {
 
   public String type;
-  public String subtype;
   public int id = 432;
   public String modName;
   public String version;
+  public String loader;
+  public String API;
+
   String baseURL = "https://api.curseforge.com";
 
   public void curseForgeHandler() {
-    if (subtype.equals("search"))
-      search(true);
-    else if (subtype.equals("download")) {
+    if (type.equals("search"))
+      search();
+    else if (type.equals("download")) {
       // To Do
-    } else if (subtype.equals("Home Page")) {
+    } else if (type.equals("Home Page")) {
       // TO Do
     }
 
   }
 
-  public void search(boolean mode){
-    //Mod Loader Translator
-    HashMap<String,Integer> mLT = new HashMap<>();
+  public void search() {
+    // Mod Loader Translator
+    HashMap<String, Integer> mLT = new HashMap<>();
     mLT.put("forge", 1);
-    mLT.put("fabric",4);
-    mLT.put("liteLoader",3);
-    mLT.put("cauldron",2);
-    mLT.put("quilt",5);
-    mLT.put("neoForge",6);
+    mLT.put("fabric", 4);
+    mLT.put("liteLoader", 3);
+    mLT.put("cauldron", 2);
+    mLT.put("quilt", 5);
+    mLT.put("neoForge", 6);
 
+    String url = baseURL + "/v1/mods/search";
+    String queries = "?gameId=" + id;
+    queries += "&gameVersion=" + version;
+    queries += "&searchFilter=" + URLEncoder.encode(modName, StandardCharsets.UTF_8);
+    queries += "&modLoaderType=" + mLT.get(loader);
+    url += queries;
 
-    if(mode){
-      url = baseURL+"/v1/categories?gameID="+id
+    HttpRequest searching = HttpRequest
+        .newBuilder()
+        .uri(URI.create(url))
+        .header("x-api-key", API)
+        .GET()
+        .build();
 
+    HttpClient device = HttpClient.newHttpClient();
 
+    try {
+      HttpResponse<String> result = device.send(searching, BodyHandlers.ofString());
 
+      if (result.statusCode() != 200) {
+        ErrorHelper.errorJson("Website returned status code" + result.statusCode());
+        return;
+      }
+      JsonObject response = JsonParser.parseString(result.body()).getAsJsonObject();
+      Communicator.printer(response);
+    } catch (Exception e) {
+      ErrorHelper.errorJson(e.toString());
     }
+
   }
 }

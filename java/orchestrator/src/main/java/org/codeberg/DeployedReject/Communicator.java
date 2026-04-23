@@ -16,7 +16,7 @@ public class Communicator implements Runnable {
       try {
         System.out.println(printBuffer.take());
       } catch (Exception e) {
-        ErrorHelper.errorJson(e.toString());
+        e.printStackTrace();
       }
     }
   }
