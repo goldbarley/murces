@@ -70,27 +70,11 @@ public class Modrinth {
                 HttpResponse.BodyHandlers.ofInputStream());
 
             if (downloadRequest.statusCode() == 200) {
-              FileOutputStream downloadedFile = new FileOutputStream(
-                  "mods/" + downloadLink.get("files").getAsJsonArray().get(0).getAsJsonObject().get("filename")
-                      .getAsString());
-              byte[] buffer = new byte[4096];
+
               long filesize = downloadRequest.headers().firstValueAsLong("content-length").orElse(-1L);
-              int readSize = 0;
-              int bytesRead;
-              InputStream writer = downloadRequest.body();
-              JsonObject response = new JsonObject();
-              response.addProperty("status", 0);
-              response.addProperty("type", "download");
-              response.addProperty("progress", 0);
-
-              while ((bytesRead = writer.read(buffer)) != -1) {
-                downloadedFile.write(buffer, 0, bytesRead);
-                readSize += bytesRead;
-                response.addProperty("progress", (readSize * 100.0) / filesize);
-                Communicator.printer(response);
-              }
-
-              downloadedFile.close();
+              Progress.prog(downloadRequest.body(), "mods/"
+                  + downloadLink.get("files").getAsJsonArray().get(0).getAsJsonObject().get("filename").getAsString(),
+                  filesize);
             } else {
 
               ErrorHelper.errorJson("Website returned status code" + result.statusCode());

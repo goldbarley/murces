@@ -1,13 +1,10 @@
 package org.codeberg.DeployedReject;
 
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -114,33 +111,9 @@ public class ServerHandler {
       ErrorHelper.errorJson("Website Returned status code: " + downloading.statusCode());
       return;
     }
+    long filesize = downloading.headers().firstValueAsLong("content-length").orElse(-1L);
+    Progress.prog(downloading.body(), "server.jar", filesize);
 
-    try (FileOutputStream downloaded = new FileOutputStream("server.jar")) {
-
-      try {
-        byte[] buffer = new byte[4096];
-        long filesize = downloading.headers().firstValueAsLong("content-length").orElse(-1L);
-        int readSize = 0;
-        int bytesRead;
-        InputStream writer = downloading.body();
-        JsonObject response = new JsonObject();
-        response.addProperty("status", 0);
-        response.addProperty("type", "download");
-        response.addProperty("progress", 0);
-
-        while ((bytesRead = writer.read(buffer)) != -1) {
-          downloaded.write(buffer, 0, bytesRead);
-          readSize += bytesRead;
-          response.addProperty("progress", (readSize * 100.0) / filesize);
-          Communicator.printer(response);
-        }
-      } catch (Exception e) {
-        ErrorHelper.errorJson(e.toString());
-      }
-
-    } catch (Exception e) {
-      ErrorHelper.errorJson(e.toString());
-    }
     spawnServer();
 
   }
@@ -171,32 +144,9 @@ public class ServerHandler {
       return;
     }
 
-    try (FileOutputStream downloaded = new FileOutputStream("server.jar")) {
+    long filesize = downloading.headers().firstValueAsLong("content-length").orElse(-1L);
+    Progress.prog(downloading.body(), "server.jar", filesize);
 
-      try {
-        byte[] buffer = new byte[4096];
-        long filesize = downloading.headers().firstValueAsLong("content-length").orElse(-1L);
-        int readSize = 0;
-        int bytesRead;
-        InputStream writer = downloading.body();
-        JsonObject response = new JsonObject();
-        response.addProperty("status", 0);
-        response.addProperty("type", "download");
-        response.addProperty("progress", 0);
-
-        while ((bytesRead = writer.read(buffer)) != -1) {
-          downloaded.write(buffer, 0, bytesRead);
-          readSize += bytesRead;
-          response.addProperty("progress", (readSize * 100.0) / filesize);
-          Communicator.printer(response);
-        }
-      } catch (Exception e) {
-        ErrorHelper.errorJson(e.toString());
-      }
-
-    } catch (Exception e) {
-      ErrorHelper.errorJson(e.toString());
-    }
     spawnServer();
   }
 

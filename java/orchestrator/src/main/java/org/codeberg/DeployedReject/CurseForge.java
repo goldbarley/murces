@@ -1,10 +1,8 @@
 package org.codeberg.DeployedReject;
 
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
@@ -181,29 +179,9 @@ public class CurseForge {
       return;
     }
 
-    try {
-      FileOutputStream downloadedFile = new FileOutputStream("mods/" + filename);
+    long filesize = downloadRequest.headers().firstValueAsLong("content-length").orElse(-1L);
 
-      byte[] buffer = new byte[4096];
-      long filesize = downloadRequest.headers().firstValueAsLong("content-length").orElse(-1L);
-      int readSize = 0;
-      int bytesRead;
-      InputStream writer = downloadRequest.body();
-      JsonObject response = new JsonObject();
-      response.addProperty("status", 0);
-      response.addProperty("type", "download");
-      response.addProperty("progress", 0);
+    Progress.prog(downloadRequest.body(), "mods/" + filename, filesize);
 
-      while ((bytesRead = writer.read(buffer)) != -1) {
-        downloadedFile.write(buffer, 0, bytesRead);
-        readSize += bytesRead;
-        response.addProperty("progress", (readSize * 100.0) / filesize);
-        Communicator.printer(response);
-      }
-
-      downloadedFile.close();
-    } catch (Exception e) {
-      ErrorHelper.errorJson(e.toString());
-    }
   }
 }
