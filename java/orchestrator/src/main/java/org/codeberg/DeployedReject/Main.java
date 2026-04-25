@@ -59,7 +59,7 @@ public class Main {
         if (type.equals("server")) {
 
           if (!(request.has("gameVersion") && request.has("loaderVersion") && request.has("serverType")
-              && request.has("ram"))) {
+              && request.has("ram") && request.has("job"))) {
             ErrorHelper.errorJson("Missing One Or More Necessary Parameters.");
             return;
           }
@@ -70,6 +70,7 @@ public class Main {
           sh.gVersion = request.get("gameVersion").getAsString();
           sh.lVersion = request.get("loaderVersion").getAsString();
           sh.ram = request.get("ram").getAsInt();
+          sh.job = request.get("job").getAsInt();
           sh.serverHandler();
 
         } else if (type.equals("modding")) {

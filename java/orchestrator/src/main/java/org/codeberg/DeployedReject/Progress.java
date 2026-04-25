@@ -26,7 +26,7 @@ public class Progress {
         while ((bytesRead = x.read(buffer)) != -1) {
           file.write(buffer, 0, bytesRead);
           readSize += bytesRead;
-          response.addProperty("progress", (readSize * 100.0) / filesize);
+          response.addProperty("progress", (int) ((readSize * 100.0) / filesize));
           Communicator.printer(response);
         }
 

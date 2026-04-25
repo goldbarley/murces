@@ -1,5 +1,6 @@
 package org.codeberg.DeployedReject;
 
+import java.io.FileWriter;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpRequest;
@@ -22,18 +23,41 @@ public class ServerHandler {
   public String gVersion;
   public String lVersion;
   public int ram;
+  public int job;// 1 for start,2 for stop, 0 for none,3 for check
+  public JsonArray list = new JsonArray();
 
   public void serverHandler() {
 
-    if (loader.equals("fabric")) {
+    if (job == 1 || job == 0) {
+      if (loader.equals("fabric")) {
+        fabric();
+      } else if (loader.equals("spigot")) {
+        spigot();
+      } else if (loader.equals("paper")) {
+        paper();
+      } else if (loader.equals("forge")) {
+        // To Do
+      } else if (loader.equals("vanilla")) {
+        vanilla();
+      }
+    }
+    if (job == 1) {
+
+      if (loader.equals("forge"))
+        spawnServer(true);
+      else
+        spawnServer();
+    } else if (job == 2)
+      stopServer();
+    else if (job == 3) {
+      JsonObject response = new JsonObject();
       fabric();
-    } else if (loader.equals("spigot")) {
       spigot();
-    } else if (loader.equals("paper")) {
       paper();
-    } else if (loader.equals("forge")) {
-    } else if (loader.equals("vanilla")) {
       vanilla();
+      forge();
+      response.add("serverList", list);
+      Communicator.printer(response);
     }
 
   }
@@ -117,11 +141,13 @@ public class ServerHandler {
     if (downloading.statusCode() != 200) {
       ErrorHelper.errorJson("Website Returned status code: " + downloading.statusCode());
       return;
+    } else if (job == 3) {
+      list.add("vanilla");
+      return;
+
     }
     long filesize = downloading.headers().firstValueAsLong("content-length").orElse(-1L);
     Progress.prog(downloading.body(), "server.jar", filesize);
-
-    spawnServer();
 
   }
 
@@ -149,12 +175,14 @@ public class ServerHandler {
     if (downloading.statusCode() != 200) {
       ErrorHelper.errorJson("Website Returned Status Code: " + downloading.statusCode());
       return;
+    } else if (job == 3) {
+      list.add("fabric");
+      return;
     }
 
     long filesize = downloading.headers().firstValueAsLong("content-length").orElse(-1L);
     Progress.prog(downloading.body(), "server.jar", filesize);
 
-    spawnServer();
   }
 
   public void spigot() {
@@ -171,6 +199,9 @@ public class ServerHandler {
     }
     if (build.statusCode() != 200) {
       ErrorHelper.errorJson("Website Returned Status Code: " + build.statusCode());
+      return;
+    } else if (job == 3) {
+      list.add("spigot");
       return;
     }
 
@@ -216,7 +247,6 @@ public class ServerHandler {
       ErrorHelper.errorJson("Ignore this most of the time.");
     }
 
-    spawnServer();
   }
 
   public void paper() {
@@ -242,6 +272,9 @@ public class ServerHandler {
       if (downloading.statusCode() != 200) {
         ErrorHelper.errorJson("Website Returned Status Code: " + downloading.statusCode());
         return;
+      } else if (job == 3) {
+        list.add("paper");
+        return;
       }
       long filesize = downloading.headers().firstValueAsLong("content-length").orElse(-1L);
 
@@ -251,7 +284,6 @@ public class ServerHandler {
       return;
     }
 
-    spawnServer();
   }
 
   public void spawnServer() {
@@ -302,7 +334,7 @@ public class ServerHandler {
       Communicator.printer(response);
 
       if (Shell.execute(command).waitFor() != 0) {
-        ErrorHelper.errorJson("Server Not Started");
+        ErrorHelper.errorJson("Server Already Started");
 
       } else {
         response.addProperty("status", 3);
@@ -312,6 +344,141 @@ public class ServerHandler {
     } catch (Exception e) {
       ErrorHelper.errorJson(e.toString());
     }
+
   }
 
+  public void stopServer() {
+
+    String[] command = new String[] {
+        "tmux", "kill-session", "-t", "mcServer"
+    };
+
+    try {
+      if (Shell.execute(command).waitFor() != 0) {
+        ErrorHelper.errorJson("Could Not Stop Server");
+        return;
+      }
+
+      JsonObject response = new JsonObject();
+      response.addProperty("status", 0);
+      response.addProperty("type", "server");
+      Communicator.printer(response);
+
+    } catch (Exception e) {
+      ErrorHelper.errorJson(e.toString());
+    }
+
+  }
+
+  public void forge() {
+    String url = " https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json ";
+    try {
+      HttpResponse<String> findingURl = Main.device.send(HttpRequest.newBuilder()
+          .uri(URI.create(
+              url))
+          .GET().build(), BodyHandlers.ofString());
+
+      if (findingURl.statusCode() != 200) {
+        ErrorHelper.errorJson("Something went wrong.");
+        return;
+      }
+      JsonObject result = JsonParser.parseString(findingURl.body()).getAsJsonObject();
+
+      String iVersion = result.get(gVersion + "-recommended").getAsString();
+
+      url = "https://maven.minecraftforge.net/net/minecraftforge/forge/" + gVersion + "-" + iVersion + "/forge-"
+          + gVersion + "-" + iVersion + "-installer.jar";
+
+      HttpResponse<InputStream> downloading = Main.device
+          .send(HttpRequest.newBuilder().uri(URI.create(url)).GET().build(), BodyHandlers.ofInputStream());
+
+      if (downloading.statusCode() != 200) {
+        ErrorHelper.errorJson("Website Returned Status Code: " + downloading.statusCode());
+        return;
+      } else if (job == 3) {
+        list.add("forge");
+        return;
+      }
+
+      long filesize = downloading.headers().firstValueAsLong("content-length").orElse(-1L);
+
+      Progress.prog(downloading.body(), "forge-" + gVersion + "-" + iVersion + "-installer.jar", filesize);
+
+      String[] command = new String[] { "java", "-jar", "forge-" + gVersion + "-" + iVersion + "-installer.jar",
+          "--installServer" };
+
+      try {
+        if (Shell.execute(command).waitFor() != 0) {
+          ErrorHelper.errorJson("Error on my side probably");
+          return;
+        }
+      } catch (Exception e) {
+        ErrorHelper.errorJson(e.toString());
+      }
+
+    } catch (Exception e) {
+      ErrorHelper.errorJson(e.toString());
+    }
+
+  }
+
+  public void spawnServer(boolean x) {
+
+    JsonObject response = new JsonObject();
+    response.addProperty("status", 2);
+    Communicator.printer(response);
+
+    try (FileWriter eulaWriter = new FileWriter("eula.txt")) {
+      eulaWriter.write("eula=true");
+    } catch (Exception e) {
+      ErrorHelper.errorJson(e.toString());
+      return;
+    }
+
+    try (FileWriter argsWriter = new FileWriter("user_jvm_args.txt")) {
+      argsWriter.write("-Xmx" + Integer.toString(ram) + "G\n" +
+          "-Xms" + Integer.toString(ram) + "G\n" +
+          "-XX:+UseG1GC\n" +
+          "-XX:+ParallelRefProcEnabled\n" +
+          "-XX:MaxGCPauseMillis=200\n" +
+          "-XX:+UnlockExperimentalVMOptions\n" +
+          "-XX:+DisableExplicitGC\n" +
+          "-XX:+AlwaysPreTouch\n" +
+          "-XX:G1NewSizePercent=30\n" +
+          "-XX:G1MaxNewSizePercent=40\n" +
+          "-XX:G1HeapRegionSize=8M\n" +
+          "-XX:G1ReservePercent=20\n" +
+          "-XX:G1HeapWastePercent=5\n" +
+          "-XX:G1MixedGCCountTarget=4\n" +
+          "-XX:InitiatingHeapOccupancyPercent=15\n" +
+          "-XX:G1MixedGCLiveThresholdPercent=90\n" +
+          "-XX:G1RSetUpdatingPauseTimePercent=5\n" +
+          "-XX:SurvivorRatio=32\n" +
+          "-XX:+PerfDisableSharedMem\n" +
+          "-XX:MaxTenuringThreshold=1\n" +
+          "-Dusing.aikars.flags=https://mcflags.emc.gs\n" +
+          "-Daikars.new.flags=true");
+
+    } catch (Exception e) {
+      ErrorHelper.errorJson(e.toString());
+    }
+
+    try {
+      String[] command = new String[] { "chmod", "+x", "run.sh" };
+      if (Shell.execute(command).waitFor() != 0) {
+        ErrorHelper.errorJson("User not authorized.");
+        return;
+      }
+
+      command = new String[] { "tmux", "new-session", "-d", "-s", "mcServer", "./run.sh", "nogui" };
+
+      if (Shell.execute(command).waitFor() != 0) {
+        ErrorHelper.errorJson("too tired to write a error message.");
+      }
+
+    } catch (Exception e) {
+      ErrorHelper.errorJson(e.toString());
+    }
+
+  }
 }
