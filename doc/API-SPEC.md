@@ -122,7 +122,7 @@ Returned when `subType` is `search` or `home`. Contains a `mods` key, which hold
 _Example:_ `{"status": 0, "type": "query", "mods": [["roughly-enough-items", "Roughly Enough Items (REI)"], ["sodium", "Sodium"]]}`
 
 **3. Download Progress (`type: "download"`)**
-Emits a rapid stream of JSON objects. The frontend should update its progress bar using the `progress` float (0.0 to 100.0).
+Emits a rapid stream of JSON objects. The frontend should update its progress bar using the `progress` float (0 to 100). Sometimes it will be negative, that means a valid progress bar is not possible.
 _Flow:_
 
 1. `{"status": 2, "type": "download", "progress": 0}` 
