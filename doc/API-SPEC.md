@@ -100,11 +100,11 @@ The server module downloads the required server executable, automatically bypass
 
 ---
 
-## Output Schema (Responses)
+## Responses
 
 The backend communicates back to the UI via stdout using standardized JSON objects. The frontend UI should parse standard input and primarily read the `status` key to determine state.
 
-### The `status` Code Protocol
+### Valid `status` Codes
 
 - `0` : **Success / Continuous Update.** Used for returning search queries or updating progress bars.
 - `1` : **Fatal Error.** The job failed and was aborted.
@@ -125,10 +125,10 @@ _Example:_ `{"status": 0, "type": "query", "mods": [["roughly-enough-items", "Ro
 Emits a rapid stream of JSON objects. The frontend should update its progress bar using the `progress` float (0.0 to 100.0).
 _Flow:_
 
-1. `{"status": 2, "type": "download", "progress": 0}` _(Start)_
-2. `{"status": 0, "type": "download", "progress": 14.5}` _(Updating...)_
-3. `{"status": 0, "type": "download", "progress": 89.2}` _(Updating...)_
-4. `{"status": 3, "type": "download", "progress": 100.0}` _(Finished)_
+1. `{"status": 2, "type": "download", "progress": 0}` 
+2. `{"status": 0, "type": "download", "progress": 14.5}` 
+3. `{"status": 0, "type": "download", "progress": 89.2}` 
+4. `{"status": 3, "type": "download", "progress": 100.0}` 
 
 **4. Server Deployment (`type: "server"`)**
 Servers take time to compile (Spigot) or launch (`tmux`). They utilize the start/stop status codes.
