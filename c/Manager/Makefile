@@ -1,24 +1,26 @@
 # Variables
 CC = gcc
 CFLAGS = -Wall -Wextra -g
-TARGET = commandsTester
-SRCS = commands.c 
+BUILD_DIR = target
+TARGET = $(BUILD_DIR)/my_program
+SRCS = main.c utils.c
 OBJS = $(SRCS:.c=.o)
 
-# Default rule: build the executable
-all: $(TARGET)
+# Default rule
+all: clean $(TARGET)
 
-# Link objects to create the executable
+# Create the directory and link objects
 $(TARGET): $(OBJS)
+	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
 
-# Compile source files into object files
+# Compile source files
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Clean up build files
+# Clean up build files (removes the entire target folder)
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -rf $(BUILD_DIR)
+	rm -f $(OBJS)
 
-# Phony targets (not actual files)
 .PHONY: all clean

@@ -41,16 +41,16 @@ int svctrl(char *args) {
   }
 }
 
-int stopServer() { return svctrl("stop"); }
+int sv_StopServer() { return svctrl("stop"); }
 
-int console(char *command) {
+int sv_Console(char *command) {
   char args[512];
   strcpy(args, "--mc ");
   strcat(args, command);
   return svctrl(args);
 }
 
-int migrate(char *oldID, char *newID) {
+int sv_Migrate(char *oldID, char *newID) {
   char args[80];
   strcpy(args, "--migrate ");
   strcat(args, oldID);
