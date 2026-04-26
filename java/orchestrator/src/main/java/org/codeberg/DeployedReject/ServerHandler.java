@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.util.stream.Stream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -71,19 +70,7 @@ public class ServerHandler {
         .build();
 
     HttpResponse<String> temp;
-    try {
-
-      temp = Main.device.send(findingURL, BodyHandlers.ofString());
-
-    } catch (Exception e) {
-      ErrorHelper.errorJson(e.toString());
-      return;
-    }
-
-    if (temp.statusCode() != 200) {
-      ErrorHelper.errorJson("Website returned: " + temp.statusCode());
-      return;
-    }
+    temp = NetworkUtils.attemptS(findingURL);
 
     url = "null";
     JsonArray versions = JsonParser.parseString(temp.body()).getAsJsonObject().get("versions").getAsJsonArray();
@@ -105,19 +92,7 @@ public class ServerHandler {
         .GET()
         .build();
 
-    try {
-
-      temp = Main.device.send(findingURL, BodyHandlers.ofString());
-
-    } catch (Exception e) {
-      ErrorHelper.errorJson(e.toString());
-      return;
-    }
-
-    if (temp.statusCode() != 200) {
-      ErrorHelper.errorJson("Website returned status code:" + temp.statusCode());
-      return;
-    }
+    temp = NetworkUtils.attemptS(findingURL);
 
     JsonObject downloadUrl = JsonParser.parseString(temp.body()).getAsJsonObject();
 
@@ -129,19 +104,9 @@ public class ServerHandler {
 
     HttpResponse<InputStream> downloading;
 
-    try {
+    downloading = NetworkUtils.attemptI(findingURL);
 
-      downloading = Main.device.send(findingURL, BodyHandlers.ofInputStream());
-
-    } catch (Exception e) {
-      ErrorHelper.errorJson(e.toString());
-      return;
-    }
-
-    if (downloading.statusCode() != 200) {
-      ErrorHelper.errorJson("Website Returned status code: " + downloading.statusCode());
-      return;
-    } else if (job == 3) {
+    if (job == 3) {
       list.add("vanilla");
       return;
 
