@@ -35,6 +35,7 @@ public class ServerHandler {
       } else if (loader.equals("paper")) {
         paper();
       } else if (loader.equals("forge")) {
+        forge();
         // To Do
       } else if (loader.equals("vanilla")) {
         vanilla();
@@ -306,7 +307,7 @@ public class ServerHandler {
   }
 
   public void forge() {
-    String url = " https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json ";
+    String url = "https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json";
     HttpResponse<String> findingURl = NetworkUtils.attemptS(HttpRequest.newBuilder()
         .uri(URI.create(
             url))
@@ -314,7 +315,7 @@ public class ServerHandler {
 
     JsonObject result = JsonParser.parseString(findingURl.body()).getAsJsonObject();
 
-    String iVersion = result.get(gVersion + "-recommended").getAsString();
+    String iVersion = result.get("promos").getAsJsonObject().get(gVersion + "-recommended").getAsString();
 
     url = "https://maven.minecraftforge.net/net/minecraftforge/forge/" + gVersion + "-" + iVersion + "/forge-"
         + gVersion + "-" + iVersion + "-installer.jar";
