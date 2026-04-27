@@ -22,10 +22,10 @@ int setProperty(char *property, char *value) {
       continue;
 
     if (!strcmp(prop, property)) {
-      fprintf(fileBuffer, "%s=%s\n", prop, value);
+      fprintf(fileBuffer, "%s=%s", prop, value);
       flag = true;
     } else {
-      fprintf(fileBuffer, "%s=%s\n", prop, strtok(NULL, "="));
+      fprintf(fileBuffer, "%s=%s", prop, strtok(NULL, "="));
     }
   }
 
