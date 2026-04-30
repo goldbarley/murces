@@ -40,7 +40,6 @@ public class ServerHandler {
         paper();
       } else if (loader.equals("forge")) {
         forge();
-        // To Do
       } else if (loader.equals("vanilla")) {
         vanilla();
       }
