@@ -1,4 +1,5 @@
 #include <dirent.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -76,4 +77,11 @@ int getMods(char ***modfiles) {
   closedir(mods);
 
   return mcnt;
+}
+
+int deleteMod(char *modName) {
+  char path[64];
+  if (!strcat(path, modName))
+    return 1;
+  return remove(path);
 }
