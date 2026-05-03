@@ -1,0 +1,5 @@
+		+-----------+
+		| Precursor |
+		+-----------+
+
+A TUI library written in C using 'ncurses'.
