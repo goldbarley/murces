@@ -24,7 +24,7 @@ public class Main {
 
   public static void main(String[] args) {
 
-    System.setErr(new PrintStream(OutputStream.nullOutputStream()));
+    // System.setErr(new PrintStream(OutputStream.nullOutputStream()));
 
     try {
       if (!Files.isDirectory(Paths.get("mods")))

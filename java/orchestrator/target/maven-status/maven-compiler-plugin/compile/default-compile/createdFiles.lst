@@ -1,8 +1,8 @@
-org/codeberg/DeployedReject/NetworkUtils.class
-org/codeberg/DeployedReject/CurseForge.class
-org/codeberg/DeployedReject/Shell.class
-org/codeberg/DeployedReject/Communicator.class
+org/codeberg/DeployedReject/utils/NetworkUtils.class
+org/codeberg/DeployedReject/utils/ErrorHelper.class
+org/codeberg/DeployedReject/utils/Shell.class
+org/codeberg/DeployedReject/utils/Communicator.class
+org/codeberg/DeployedReject/mods/CurseForge.class
+org/codeberg/DeployedReject/device/ServerHandler.class
 org/codeberg/DeployedReject/Main.class
-org/codeberg/DeployedReject/ErrorHelper.class
-org/codeberg/DeployedReject/ServerHandler.class
-org/codeberg/DeployedReject/Modrinth.class
+org/codeberg/DeployedReject/mods/Modrinth.class

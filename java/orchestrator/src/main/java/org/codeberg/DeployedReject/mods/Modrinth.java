@@ -9,6 +9,7 @@ import java.net.http.HttpResponse;
 import java.net.URLEncoder;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+
 import org.codeberg.DeployedReject.utils.ErrorHelper;
 import org.codeberg.DeployedReject.utils.NetworkUtils;
 import org.codeberg.DeployedReject.utils.Communicator;
@@ -50,6 +51,8 @@ public class Modrinth {
         .GET()
         .build();
     HttpResponse<String> result = NetworkUtils.attemptS(downloading);
+    if (result == null)
+      return;
 
     if (result.statusCode() == 200) {
 
@@ -65,6 +68,9 @@ public class Modrinth {
             .build();
         // Getting it as a InputStream to monitor download progress.
         HttpResponse<InputStream> downloadRequest = NetworkUtils.attemptI(downloading);
+        if (downloadRequest == null) {
+          return;
+        }
 
         long filesize = downloadRequest.headers().firstValueAsLong("content-length").orElse(-1L);
         NetworkUtils.prog(downloadRequest.body(), "mods/"
@@ -102,6 +108,8 @@ public class Modrinth {
         .build();
 
     HttpResponse<String> result = NetworkUtils.attemptS(searching);
+    if (result == null)
+      return;
     JsonObject response = JsonParser.parseString(result.body()).getAsJsonObject();
     Communicator.printer(sTranslator(response));
 

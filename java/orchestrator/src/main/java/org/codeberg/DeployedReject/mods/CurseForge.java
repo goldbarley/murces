@@ -67,7 +67,12 @@ public class CurseForge {
         .GET()
         .build();
 
-    JsonObject response = JsonParser.parseString(NetworkUtils.attemptS(searching).body()).getAsJsonObject();
+    HttpResponse<String> tempR = NetworkUtils.attemptS(searching);
+    if (tempR == null)
+      return;
+
+    JsonObject response = JsonParser.parseString(tempR.body()).getAsJsonObject();
+
     Communicator.printer(sTranslator(response, true));
 
   }
@@ -88,7 +93,11 @@ public class CurseForge {
         .POST(HttpRequest.BodyPublishers.ofString(request.toString()))
         .build();
 
-    JsonObject response = JsonParser.parseString(NetworkUtils.attemptS(homeing).body()).getAsJsonObject();
+    HttpResponse<String> tempR = NetworkUtils.attemptS(homeing);
+    if (tempR == null) {
+      return;
+    }
+    JsonObject response = JsonParser.parseString(tempR.body()).getAsJsonObject();
     Communicator.printer(sTranslator(response, false));
 
   }
@@ -100,15 +109,31 @@ public class CurseForge {
     response.addProperty("type", "query");
     JsonArray mods = new JsonArray();
 
-    for (int i = 0; i < x.get((mode) ? "data" : "featured").getAsJsonArray().size(); i++) {
-      JsonArray mod = new JsonArray();
-      mod.add(x.get((mode) ? "data" : "featured").getAsJsonArray().get(i).getAsJsonObject().get("id"));
-      mod.add(x.get((mode) ? "data" : "featured").getAsJsonArray().get(i).getAsJsonObject().get("name"));
-      mods.add(mod);
+    try {
+      JsonArray targetArray;
+
+      if (mode) {
+        targetArray = x.get("data").getAsJsonArray();
+      } else {
+        targetArray = x.get("data").getAsJsonObject().get("popular").getAsJsonArray();
+      }
+
+      for (int i = 0; i < targetArray.size(); i++) {
+        JsonArray mod = new JsonArray();
+        JsonObject currentMod = targetArray.get(i).getAsJsonObject();
+
+        mod.add(currentMod.get("id"));
+        mod.add(currentMod.get("name"));
+        mods.add(mod);
+      }
+
+    } catch (Exception e) {
+      ErrorHelper.errorJson("API Fucking CHANGED");
+      return response;
     }
+
     response.add("mods", mods);
     return response;
-
   }
 
   public void download() {
@@ -125,7 +150,11 @@ public class CurseForge {
 
     String downloadURL, filename;
     try {
-      JsonObject data = JsonParser.parseString(NetworkUtils.attemptS(downloading).body()).getAsJsonObject().get("data")
+      HttpResponse<String> tempR = NetworkUtils.attemptS(downloading);
+      if (tempR == null) {
+        return;
+      }
+      JsonObject data = JsonParser.parseString(tempR.body()).getAsJsonObject().get("data")
           .getAsJsonArray().get(0)
           .getAsJsonObject();
 
@@ -150,6 +179,9 @@ public class CurseForge {
         .build();
 
     HttpResponse<InputStream> downloadRequest = NetworkUtils.attemptI(downloaded);
+
+    if (downloadRequest == null)
+      return;
 
     if (downloadRequest.statusCode() != 200) {
       ErrorHelper.errorJson("Website returned status code: " + downloadRequest.statusCode());
