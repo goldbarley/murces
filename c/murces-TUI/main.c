@@ -26,12 +26,12 @@ int main() {
 
   box(welcome, 0, 0);
   mvwprintw(welcome, 1, 1,
-            "Welcome to MurCes\n Please Press Enter To Continue\n");
+            "  Welcome to MurCes\n    Please Press \n   Enter To Continue\n");
 
   refresh();
   wrefresh(welcome);
   getch();
-  erase();
+  werase(welcome);
 
   WINDOW *warning = newwin(10, 30, height / 2 - 5, width / 2 - 15);
   init_pair(2, COLOR_RED, COLOR_BLACK);
@@ -42,10 +42,12 @@ int main() {
   wrefresh(warning);
   usleep(5000000);
   delwin(warning);
-  box(welcome, 1, 1);
+  box(welcome, 0, 0);
   mvwprintw(welcome, 1, 1, "TODO MENU");
+  refresh();
   wrefresh(welcome);
   getch();
+  delwin(welcome);
   endwin();
 
   return 0;
