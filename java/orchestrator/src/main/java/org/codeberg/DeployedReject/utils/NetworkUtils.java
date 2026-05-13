@@ -21,6 +21,7 @@ public class NetworkUtils {
         JsonObject response = new JsonObject();
         response.addProperty("status", 2);
         response.addProperty("type", "download");
+        response.addProperty("id", filename);
         response.addProperty("progress", 0);
 
         Communicator.printer(response);
