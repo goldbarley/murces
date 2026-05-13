@@ -173,6 +173,7 @@ public class ServerHandler {
     try {
       JsonObject response = new JsonObject();
       response.addProperty("status", 2);
+      response.addProperty("type", "server");
       Communicator.printer(response);
       if (Shell.execute(command).waitFor() != 0) {
         ErrorHelper.errorJson("Build failed");
@@ -271,6 +272,7 @@ public class ServerHandler {
 
       JsonObject response = new JsonObject();
       response.addProperty("status", 2);
+      response.addProperty("type", "server");
       Communicator.printer(response);
 
       if (Shell.execute(command).waitFor() != 0) {

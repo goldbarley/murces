@@ -15,6 +15,6 @@ int *init_orchestrator();
 char **search(const char *modBrowser, const char *query, const char *version, const char *modLoader, int *orcIO);
 
 // Shuts down the orchestrator and cleans up.
-void cleanup_orchestrator(int *orcIO, pid_t orchestrator_pid);
+void cleanup_orchestrator(int *orcIO);
 
 #endif // COMMUNICATE_H

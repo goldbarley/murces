@@ -1,5 +1,6 @@
 #include "communciate.h"
 #include "cJSON.h"
+#include "router.h"
 #include <iso646.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +12,7 @@
 static pid_t orchestrator_pid = -1;
 
 int *init_orchestrator() {
+  static int orcIO[3];
   if (orchestrator_pid != -1)
     return NULL;
 
@@ -33,11 +35,9 @@ int *init_orchestrator() {
   } else if (orchestrator_pid > 0) {
     close(orcInput[0]);
     close(orcOutput[1]);
-    static int orcIOP[3];
-    orcIOP[0] = orcInput[1];
-    orcIOP[1] = orcOutput[0];
-    orcIOP[2] = orchestrator_pid;
-    return orcIOP;
+    orcIO[0] = orcInput[1];
+    orcIO[1] = orcOutput[0];
+    return orcIO;
   } else {
     perror("fork failed");
     return NULL;
@@ -65,14 +65,8 @@ char **search(const char *modBrowser, const char *query, const char *version,
   dprintf(orcIO[0], "%s\n", request);
   free(request);
 
-  char buffer[16384];
-  ssize_t bytes_read = read(orcIO[1], buffer, sizeof(buffer) - 1);
-  if (bytes_read <= 0) {
-    return NULL;
-  }
-  buffer[bytes_read] = '\0';
+  cJSON *response = get_search();
 
-  cJSON *response = cJSON_Parse(buffer);
   if (!response)
     return NULL;
 
@@ -102,7 +96,9 @@ char **search(const char *modBrowser, const char *query, const char *version,
   return results;
 }
 
-void cleanup_orchestrator(int *orcIO, pid_t orchestrator_pid) {
+#include <signal.h>
+
+void cleanup_orchestrator(int *orcIO) {
   if (orchestrator_pid != -1) {
     cJSON *kill_req = cJSON_CreateObject();
     cJSON_AddStringToObject(kill_req, "type", "kill");
@@ -112,9 +108,6 @@ void cleanup_orchestrator(int *orcIO, pid_t orchestrator_pid) {
       free(kill_str);
     }
     cJSON_Delete(kill_req);
-
-    close(orcIO[0]);
-    close(orcIO[1]);
 
     int status;
     waitpid(orchestrator_pid, &status, 0);
