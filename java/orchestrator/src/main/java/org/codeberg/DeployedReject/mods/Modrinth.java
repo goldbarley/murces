@@ -1,6 +1,9 @@
 package org.codeberg.DeployedReject.mods;
 
 import com.google.gson.JsonParser;
+
+import sun.awt.www.content.audio.wav;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonArray;
 import java.io.InputStream;
@@ -12,16 +15,25 @@ import java.nio.charset.StandardCharsets;
 
 import org.codeberg.DeployedReject.utils.ErrorHelper;
 import org.codeberg.DeployedReject.utils.NetworkUtils;
+import org.codeberg.DeployedReject.ModAPI;
 import org.codeberg.DeployedReject.utils.Communicator;
 
-public class Modrinth {
-  public String type;
-  public String query = "mods";
-  public String version;
-  public String loader;
-  public String email;
+public class Modrinth implements ModAPI {
+  String type;
+  String modName = "mods";
+  String version;
+  String loader;
+  String email;
 
-  public void modrinthHandler() {
+  public Modrinth(String type, String modName, String version, String loader, String email) {
+    this.type = type;
+    this.modName = modName;
+    this.version = version;
+    this.loader = loader;
+    this.email = email;
+  }
+
+  public void handler() {
 
     if (type.equals("search"))
       search(true);
@@ -42,7 +54,7 @@ public class Modrinth {
     loader = URLEncoder.encode(loader, StandardCharsets.UTF_8);
     version = URLEncoder.encode(version, StandardCharsets.UTF_8);
 
-    url = url + query + "/version?loaders=" + loader + "&game_versions=" + version;
+    url = url + modName + "/version?loaders=" + loader + "&game_versions=" + version;
 
     HttpRequest downloading = HttpRequest
         .newBuilder()
@@ -96,9 +108,9 @@ public class Modrinth {
       facets = "[[\"project_type:mod\"],[\"server_side:required\",\"server_side:optional\"]]";
 
     }
-    query = URLEncoder.encode(query, StandardCharsets.UTF_8);
+    modName = URLEncoder.encode(modName, StandardCharsets.UTF_8);
     facets = URLEncoder.encode(facets, StandardCharsets.UTF_8);
-    url = url + "?query=" + query + "&facets=" + facets + "&limit=10";
+    url = url + "?query=" + modName + "&facets=" + facets + "&limit=10";
 
     HttpRequest searching = HttpRequest
         .newBuilder()

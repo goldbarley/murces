@@ -57,7 +57,7 @@ public class Main {
         break;
 
       worker.submit(() -> {
-        // type can be modding/serverSetup/kill
+        // type can be modding/server/kill
         if (!request.has("type")) {
           ErrorHelper.errorJson("Error Missing A Type Parameter");
           return;
@@ -84,33 +84,31 @@ public class Main {
         } else if (type.equals("modding")) {
 
           if (!(request.has("modBrowser") && request.has("modName") && request.has("version")
-              && request.has("modLoader") && request.has("modId"))) {
+              && request.has("loader") && request.has("subType"))) {
             ErrorHelper.errorJson("Missing One or More Necessary Parameters.");
             return;
           }
 
           String modBrowser = request.get("modBrowser").getAsString();
+          String subType = request.get("subType").getAsString();
+          String modName = request.get("modName").getAsString();
+          String version = request.get("version").getAsString();
+          String loader = request.get("loader").getAsString();
 
-          if (modBrowser.equalsIgnoreCase("modrinth")) {
-
-            Modrinth mb = new Modrinth();
-            mb.type = request.get("subType").getAsString();
-            mb.query = request.get("modName").getAsString();
-            mb.version = request.get("version").getAsString();
-            mb.loader = request.get("modLoader").getAsString();
-            mb.email = email;
-            mb.modrinthHandler();
-          } else if (modBrowser.equals("curseForge")) {
-            CurseForge cf = new CurseForge();
-            cf.type = request.get("subType").getAsString();
-            cf.modName = request.get("modName").getAsString();
-            cf.version = request.get("version").getAsString();
-            cf.loader = request.get("modLoader").getAsString();
-            cf.API = curseAPI;
-            cf.modId = request.get("modId").getAsString();
-            cf.curseForgeHandler();
-
+          ModAPI handle;
+          switch (modBrowser) {
+            case "modrinth":
+              handle = new Modrinth(subType, modName, version, loader, email);
+              break;
+            case "curseForge":
+              handle = new CurseForge(subType, modName, version, loader, curseAPI);
+              break;
+            default:
+              ErrorHelper.errorJson("Mod API not Supported or Incorrectly Typed");
+              return;
           }
+          handle.handler();
+
         } else {
           ErrorHelper.errorJson("Invalid Type");
         }

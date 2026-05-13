@@ -11,10 +11,22 @@
 
 static pid_t orchestrator_pid = -1;
 
-int *init_orchestrator() {
+int *init_orchestrator(int mode) {
   static int orcIO[3];
   if (orchestrator_pid != -1)
     return NULL;
+
+  if (mode == 0) {
+    if (access("./murces-orchestrator", X_OK) == 0) {
+      orcIO[0] = -1;
+      orcIO[1] = -1;
+      return orcIO;
+    } else {
+      return NULL;
+    }
+
+    return 0;
+  }
 
   int orcInput[2];
   int orcOutput[2];

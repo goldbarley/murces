@@ -11,10 +11,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.net.http.HttpResponse;
 import org.codeberg.DeployedReject.utils.ErrorHelper;
+import org.codeberg.DeployedReject.ModAPI;
 import org.codeberg.DeployedReject.utils.Communicator;
 import org.codeberg.DeployedReject.utils.NetworkUtils;
 
-public class CurseForge {
+public class CurseForge implements ModAPI {
 
   public String type;
   public int id = 432;
@@ -24,11 +25,19 @@ public class CurseForge {
   public String API;
   public String modId;
 
+  public CurseForge(String type, String modName, String version, String loader, String API) {
+    this.type = type;
+    this.modName = modName;
+    this.version = version;
+    this.loader = loader;
+    this.API = API;
+  }
+
   HashMap<String, Integer> mLT = new HashMap<>(); // Mod Loader Translator
 
   String baseURL = "https://api.curseforge.com";
 
-  public void curseForgeHandler() {
+  public void handler() {
     mLT.put("forge", 1);
     mLT.put("fabric", 4);
     mLT.put("liteLoader", 3);
