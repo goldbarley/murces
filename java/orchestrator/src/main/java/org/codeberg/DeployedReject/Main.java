@@ -57,7 +57,7 @@ public class Main {
         break;
 
       worker.submit(() -> {
-        // type can be modding/serverSetup/kill
+        // type can be modding/server/kill
         if (!request.has("type")) {
           ErrorHelper.errorJson("Error Missing A Type Parameter");
           return;
@@ -71,46 +71,44 @@ public class Main {
             ErrorHelper.errorJson("Missing One Or More Necessary Parameters.");
             return;
           }
+          String loader = request.get("serverType").getAsString();
+          String gVersion = request.get("gameVersion").getAsString();
+          String lVersion = request.get("loaderVersion").getAsString();
+          int ram = request.get("ram").getAsInt();
+          int job = request.get("job").getAsInt();
 
-          ServerHandler sh = new ServerHandler();
+          ServerHandler sh = new ServerHandler(type, loader, gVersion, lVersion, ram, job);
 
-          sh.loader = request.get("serverType").getAsString();
-          sh.gVersion = request.get("gameVersion").getAsString();
-          sh.lVersion = request.get("loaderVersion").getAsString();
-          sh.ram = request.get("ram").getAsInt();
-          sh.job = request.get("job").getAsInt();
           sh.serverHandler();
 
         } else if (type.equals("modding")) {
 
           if (!(request.has("modBrowser") && request.has("modName") && request.has("version")
-              && request.has("modLoader") && request.has("modId"))) {
+              && request.has("loader") && request.has("subType"))) {
             ErrorHelper.errorJson("Missing One or More Necessary Parameters.");
             return;
           }
 
           String modBrowser = request.get("modBrowser").getAsString();
+          String subType = request.get("subType").getAsString();
+          String modName = request.get("modName").getAsString();
+          String version = request.get("version").getAsString();
+          String loader = request.get("loader").getAsString();
 
-          if (modBrowser.equalsIgnoreCase("modrinth")) {
-
-            Modrinth mb = new Modrinth();
-            mb.type = request.get("subType").getAsString();
-            mb.query = request.get("modName").getAsString();
-            mb.version = request.get("version").getAsString();
-            mb.loader = request.get("modLoader").getAsString();
-            mb.email = email;
-            mb.modrinthHandler();
-          } else if (modBrowser.equals("curseForge")) {
-            CurseForge cf = new CurseForge();
-            cf.type = request.get("subType").getAsString();
-            cf.modName = request.get("modName").getAsString();
-            cf.version = request.get("version").getAsString();
-            cf.loader = request.get("modLoader").getAsString();
-            cf.API = curseAPI;
-            cf.modId = request.get("modId").getAsString();
-            cf.curseForgeHandler();
-
+          ModAPI handle;
+          switch (modBrowser) {
+            case "modrinth":
+              handle = new Modrinth(subType, modName, version, loader, email);
+              break;
+            case "curseForge":
+              handle = new CurseForge(subType, modName, version, loader, curseAPI);
+              break;
+            default:
+              ErrorHelper.errorJson("Mod API not Supported or Incorrectly Typed");
+              return;
           }
+          handle.handler();
+
         } else {
           ErrorHelper.errorJson("Invalid Type");
         }

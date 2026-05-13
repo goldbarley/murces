@@ -8,11 +8,12 @@
 // [1] = read_fd
 // [2] = orchestrator_pid
 // Returns NULL on failure.
-int *init_orchestrator();
+int *init_orchestrator(int mode);
 
 // Searches for mods and returns a null-terminated array of strings.
 // The caller must free each string and the array itself.
-char **search(const char *modBrowser, const char *query, const char *version, const char *modLoader, int *orcIO);
+char **search(const char *modBrowser, const char *query, const char *version,
+              const char *modLoader, int *orcIO);
 
 // Shuts down the orchestrator and cleans up.
 void cleanup_orchestrator(int *orcIO);

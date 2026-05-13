@@ -9,27 +9,40 @@ import java.net.http.HttpResponse;
 import java.net.URLEncoder;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-
 import org.codeberg.DeployedReject.utils.ErrorHelper;
 import org.codeberg.DeployedReject.utils.NetworkUtils;
+import org.codeberg.DeployedReject.ModAPI;
 import org.codeberg.DeployedReject.utils.Communicator;
 
-public class Modrinth {
-  public String type;
-  public String query = "mods";
-  public String version;
-  public String loader;
-  public String email;
+public class Modrinth implements ModAPI {
+  private String type;
+  private String modName = "mods";
+  private String version;
+  private String loader;
+  private String email;
 
-  public void modrinthHandler() {
+  public Modrinth(String type, String modName, String version, String loader, String email) {
+    this.type = type;
+    this.modName = modName;
+    this.version = version;
+    this.loader = loader;
+    this.email = email;
+  }
 
-    if (type.equals("search"))
-      search(true);
-    else if (type.equals("download")) {
-      download();
-    } else if (type.equals("home")) {
-      search(false);
+  public void handler() {
 
+    switch (type) {
+      case "search":
+        search(true);
+        break;
+      case "download":
+        download();
+        break;
+      case "home":
+        search(false);
+        break;
+      default:
+        ErrorHelper.errorJson("Operation not supported.");
     }
 
   }
@@ -42,7 +55,7 @@ public class Modrinth {
     loader = URLEncoder.encode(loader, StandardCharsets.UTF_8);
     version = URLEncoder.encode(version, StandardCharsets.UTF_8);
 
-    url = url + query + "/version?loaders=" + loader + "&game_versions=" + version;
+    url = url + modName + "/version?loaders=" + loader + "&game_versions=" + version;
 
     HttpRequest downloading = HttpRequest
         .newBuilder()
@@ -96,9 +109,9 @@ public class Modrinth {
       facets = "[[\"project_type:mod\"],[\"server_side:required\",\"server_side:optional\"]]";
 
     }
-    query = URLEncoder.encode(query, StandardCharsets.UTF_8);
+    modName = URLEncoder.encode(modName, StandardCharsets.UTF_8);
     facets = URLEncoder.encode(facets, StandardCharsets.UTF_8);
-    url = url + "?query=" + query + "&facets=" + facets + "&limit=10";
+    url = url + "?query=" + modName + "&facets=" + facets + "&limit=10";
 
     HttpRequest searching = HttpRequest
         .newBuilder()

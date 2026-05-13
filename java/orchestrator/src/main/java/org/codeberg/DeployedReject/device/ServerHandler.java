@@ -29,44 +29,69 @@ public class ServerHandler {
   public int job;// 1 for start,2 for stop, 0 for none,3 for check
   public JsonArray list = new JsonArray();
 
+  public ServerHandler(String type, String loader, String gVersion, String lVersion, int ram, int job) {
+    this.type = type;
+    this.loader = loader;
+    this.gVersion = gVersion;
+    this.lVersion = lVersion;
+    this.ram = ram;
+    this.job = job;
+
+  }
+
   public void serverHandler() {
 
     if (job == 1 || job == 0) {
-      if (loader.equals("fabric")) {
-        fabric();
-      } else if (loader.equals("spigot")) {
-        spigot();
-      } else if (loader.equals("paper")) {
-        paper();
-      } else if (loader.equals("forge")) {
-        forge();
-      } else if (loader.equals("vanilla")) {
-        vanilla();
+      switch (loader) {
+        case "fabric":
+          fabric();
+          break;
+        case "spigot":
+          spigot();
+          break;
+        case "paper":
+          paper();
+          break;
+        case "forge":
+          forge();
+          break;
+        case "vanilla":
+          vanilla();
+          break;
+        default:
+          ErrorHelper.errorJson("Server Unsupported or Mistyped");
+          break;
       }
     }
-    if (job == 1) {
+    switch (job) {
+      case 1:
 
-      if (loader.equals("forge"))
-        spawnServer(true);
-      else
-        spawnServer();
-    } else if (job == 2)
-      stopServer();
-    else if (job == 3) {
-      JsonObject response = new JsonObject();
-      fabric();
-      spigot();
-      paper();
-      vanilla();
-      forge();
-      response.add("serverList", list);
-      response.addProperty("status", 0);
-      Communicator.printer(response);
+        if (loader.equals("forge"))
+          spawnServer(true);
+        else
+          spawnServer();
+        break;
+      case 2:
+        stopServer();
+        break;
+      case 3:
+        JsonObject response = new JsonObject();
+        fabric();
+        spigot();
+        paper();
+        vanilla();
+        forge();
+        response.add("serverList", list);
+        response.addProperty("status", 0);
+        Communicator.printer(response);
+        break;
+      default:
+        ErrorHelper.errorJson("wtf is this job");
     }
 
   }
 
-  public void vanilla() {
+  private void vanilla() {
 
     String url = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
     HttpRequest findingURL = HttpRequest.newBuilder()
@@ -121,7 +146,7 @@ public class ServerHandler {
 
   }
 
-  public void fabric() {
+  private void fabric() {
 
     String url = "https://meta.fabricmc.net/v2/versions/loader/" + gVersion + "/" + lVersion + "/1.1.1/server/jar";
 
@@ -145,7 +170,7 @@ public class ServerHandler {
 
   }
 
-  public void spigot() {
+  private void spigot() {
 
     HttpResponse<InputStream> build;
     build = NetworkUtils.attemptI(HttpRequest.newBuilder()
@@ -202,7 +227,7 @@ public class ServerHandler {
 
   }
 
-  public void paper() {
+  private void paper() {
     String url = "https://api.papermc.io/v2/projects/paper/versions/" + gVersion;
 
     HttpResponse<String> findingURL = NetworkUtils
@@ -227,7 +252,7 @@ public class ServerHandler {
 
   }
 
-  public void spawnServer() {
+  private void spawnServer() {
     String[] command = new String[] {
         "tmux",
         "new-session",
@@ -289,7 +314,7 @@ public class ServerHandler {
 
   }
 
-  public void stopServer() {
+  private void stopServer() {
 
     String[] command = new String[] {
         "tmux", "kill-session", "-t", "mcServer"
@@ -312,7 +337,7 @@ public class ServerHandler {
 
   }
 
-  public void forge() {
+  private void forge() {
     String url = "https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json";
     HttpResponse<String> findingURl = NetworkUtils.attemptS(HttpRequest.newBuilder()
         .uri(URI.create(
@@ -359,7 +384,7 @@ public class ServerHandler {
 
   }
 
-  public void spawnServer(boolean x) {
+  private void spawnServer(boolean x) {
 
     JsonObject response = new JsonObject();
     response.addProperty("status", 2);

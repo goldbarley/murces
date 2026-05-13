@@ -11,41 +11,57 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.net.http.HttpResponse;
 import org.codeberg.DeployedReject.utils.ErrorHelper;
+import org.codeberg.DeployedReject.ModAPI;
 import org.codeberg.DeployedReject.utils.Communicator;
 import org.codeberg.DeployedReject.utils.NetworkUtils;
 
-public class CurseForge {
+public class CurseForge implements ModAPI {
 
-  public String type;
-  public int id = 432;
-  public String modName;
-  public String version;
-  public String loader;
-  public String API;
-  public String modId;
+  private String type;
+  private int id = 432;
+  private String modName;
+  private String version;
+  private String loader;
+  private String API;
+  private String modId;
+
+  public CurseForge(String type, String modName, String version, String loader, String API) {
+    this.type = type;
+    this.modName = modName;
+    this.version = version;
+    this.loader = loader;
+    this.API = API;
+  }
 
   HashMap<String, Integer> mLT = new HashMap<>(); // Mod Loader Translator
 
   String baseURL = "https://api.curseforge.com";
 
-  public void curseForgeHandler() {
+  @Override
+  public void handler() {
     mLT.put("forge", 1);
     mLT.put("fabric", 4);
     mLT.put("liteLoader", 3);
     mLT.put("cauldron", 2);
     mLT.put("quilt", 5);
     mLT.put("neoForge", 6);
-    if (type.equals("search"))
-      search();
-    else if (type.equals("download")) {
-      download();
-    } else if (type.equals("home")) {
-      home();
-    }
 
+    switch (type) {
+      case "search":
+        search();
+        break;
+      case "download":
+        download();
+        break;
+      case "home":
+        home();
+        break;
+      default:
+        ErrorHelper.errorJson("Operation not supported.");
+    }
   }
 
-  public void search() {
+  private void search() {
 
     if (!mLT.containsKey(loader)) {
       ErrorHelper.errorJson("Warning Loader Not Recognized");
@@ -77,7 +93,7 @@ public class CurseForge {
 
   }
 
-  public void home() {
+  private void home() {
 
     String url = baseURL + "/v1/mods/featured";
 
@@ -136,7 +152,7 @@ public class CurseForge {
     return response;
   }
 
-  public void download() {
+  private void download() {
     String url = baseURL + "/v1/mods/" + modId + "/files?modId=" + modId + "&gameVersion=" + version + "&modLoaderType="
         + mLT.get(loader);
 
