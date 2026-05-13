@@ -17,13 +17,13 @@ import org.codeberg.DeployedReject.utils.NetworkUtils;
 
 public class CurseForge implements ModAPI {
 
-  public String type;
-  public int id = 432;
-  public String modName;
-  public String version;
-  public String loader;
-  public String API;
-  public String modId;
+  private String type;
+  private int id = 432;
+  private String modName;
+  private String version;
+  private String loader;
+  private String API;
+  private String modId;
 
   public CurseForge(String type, String modName, String version, String loader, String API) {
     this.type = type;
@@ -37,6 +37,7 @@ public class CurseForge implements ModAPI {
 
   String baseURL = "https://api.curseforge.com";
 
+  @Override
   public void handler() {
     mLT.put("forge", 1);
     mLT.put("fabric", 4);
@@ -44,17 +45,23 @@ public class CurseForge implements ModAPI {
     mLT.put("cauldron", 2);
     mLT.put("quilt", 5);
     mLT.put("neoForge", 6);
-    if (type.equals("search"))
-      search();
-    else if (type.equals("download")) {
-      download();
-    } else if (type.equals("home")) {
-      home();
-    }
 
+    switch (type) {
+      case "search":
+        search();
+        break;
+      case "download":
+        download();
+        break;
+      case "home":
+        home();
+        break;
+      default:
+        ErrorHelper.errorJson("Operation not supported.");
+    }
   }
 
-  public void search() {
+  private void search() {
 
     if (!mLT.containsKey(loader)) {
       ErrorHelper.errorJson("Warning Loader Not Recognized");
@@ -86,7 +93,7 @@ public class CurseForge implements ModAPI {
 
   }
 
-  public void home() {
+  private void home() {
 
     String url = baseURL + "/v1/mods/featured";
 
@@ -145,7 +152,7 @@ public class CurseForge implements ModAPI {
     return response;
   }
 
-  public void download() {
+  private void download() {
     String url = baseURL + "/v1/mods/" + modId + "/files?modId=" + modId + "&gameVersion=" + version + "&modLoaderType="
         + mLT.get(loader);
 

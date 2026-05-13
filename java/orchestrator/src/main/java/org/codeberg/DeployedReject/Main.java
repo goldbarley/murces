@@ -71,14 +71,14 @@ public class Main {
             ErrorHelper.errorJson("Missing One Or More Necessary Parameters.");
             return;
           }
+          String loader = request.get("serverType").getAsString();
+          String gVersion = request.get("gameVersion").getAsString();
+          String lVersion = request.get("loaderVersion").getAsString();
+          int ram = request.get("ram").getAsInt();
+          int job = request.get("job").getAsInt();
 
-          ServerHandler sh = new ServerHandler();
+          ServerHandler sh = new ServerHandler(type, loader, gVersion, lVersion, ram, job);
 
-          sh.loader = request.get("serverType").getAsString();
-          sh.gVersion = request.get("gameVersion").getAsString();
-          sh.lVersion = request.get("loaderVersion").getAsString();
-          sh.ram = request.get("ram").getAsInt();
-          sh.job = request.get("job").getAsInt();
           sh.serverHandler();
 
         } else if (type.equals("modding")) {

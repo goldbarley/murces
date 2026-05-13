@@ -1,9 +1,6 @@
 package org.codeberg.DeployedReject.mods;
 
 import com.google.gson.JsonParser;
-
-import sun.awt.www.content.audio.wav;
-
 import com.google.gson.JsonObject;
 import com.google.gson.JsonArray;
 import java.io.InputStream;
@@ -12,18 +9,17 @@ import java.net.http.HttpResponse;
 import java.net.URLEncoder;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-
 import org.codeberg.DeployedReject.utils.ErrorHelper;
 import org.codeberg.DeployedReject.utils.NetworkUtils;
 import org.codeberg.DeployedReject.ModAPI;
 import org.codeberg.DeployedReject.utils.Communicator;
 
 public class Modrinth implements ModAPI {
-  String type;
-  String modName = "mods";
-  String version;
-  String loader;
-  String email;
+  private String type;
+  private String modName = "mods";
+  private String version;
+  private String loader;
+  private String email;
 
   public Modrinth(String type, String modName, String version, String loader, String email) {
     this.type = type;
@@ -35,13 +31,18 @@ public class Modrinth implements ModAPI {
 
   public void handler() {
 
-    if (type.equals("search"))
-      search(true);
-    else if (type.equals("download")) {
-      download();
-    } else if (type.equals("home")) {
-      search(false);
-
+    switch (type) {
+      case "search":
+        search(true);
+        break;
+      case "download":
+        download();
+        break;
+      case "home":
+        search(false);
+        break;
+      default:
+        ErrorHelper.errorJson("Operation not supported.");
     }
 
   }
