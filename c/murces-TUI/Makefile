@@ -1,27 +1,38 @@
-# Compiler
-CC = gcc
+CC := gcc
+CFLAGS := -Wall -Wextra -Wpedantic -std=c11 -MMD -MP
+LFLAGS := -lncurses
+INC_FLAGS := -I../precursor -I../precursor/include
+SRC_FILES = $(wildcard ../precursor/src/*.c ./*.c)
+BUILD_DIR := build
+TARGET := $(BUILD_DIR)/main
 
-# Compiler flags: 
-# -Wall: show all warnings 
-# -g: include debugging information
-CFLAGS = -Wall -g
+OPTIM_LVL ?= 0
+ECHO ?= 0
+EXAMPLES ?= 0
+CFLAGS += -O$(OPTIM_LVL) -DPRC_ECHO=$(ECHO)
+ifeq ($(EXAMPLES), 1)
+	CFLAGS += -Iexamples -DINCLUDE_EXAMPLES
+	SRC_FILES += $(wildcard examples/*.c)
+endif
 
-# Libraries to link
-LIBS = -lncurses
+OBJ_FILES := $(SRC_FILES:%.c=$(BUILD_DIR)/%.o)
+DEPEND := $(OBJ_FILES:.o=.d)
 
-# Target executable name
-TARGET = main
+.PHONY: all clean run
 
-# Build the target
 all: $(TARGET)
 
-$(TARGET): main.c
-	$(CC) $(CFLAGS) main.c -o $(TARGET) $(LIBS)
+$(TARGET): $(OBJ_FILES)
+	@$(CC) $(OBJ_FILES) -o $@ $(LFLAGS)
 
-# Clean up build files
-clean:
-	rm -f $(TARGET)
+$(BUILD_DIR)/%.o: %.c
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) $(INC_FLAGS) -c $< -o $@
 
-# Run the program
+-include $(DEPEND)
+
 run: all
-	./$(TARGET)
+	@./$(TARGET)
+
+clean:
+	@rm -rf $(BUILD_DIR) $(TARGET)

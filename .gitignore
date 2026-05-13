@@ -1,6 +1,9 @@
+.clangd
 .env
 java/orchestrator/target/original-murces-orchestrator-0.1.jar
 java/orchestrator/target/murces-orchestrator-0.1.jar
 java/orchestrator/apitest.txt
 java/orchestrator/mods
-
+main
+build
+c/murces-TUI/precursor
