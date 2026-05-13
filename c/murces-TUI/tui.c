@@ -7,6 +7,39 @@
 #include <stdint.h>
 #include <string.h>
 
+static struct menu_items _menu_items0 = {
+	.items = {
+		/* Start/Stop server*/
+		'S' | A_UNDERLINE | COLOR_PAIR(CPID_MM_CONTENT) , 't', 'a', 'r', 't', '/',
+		'S' | A_UNDERLINE | COLOR_PAIR(CPID_MM_CONTENT), 't', 'o', 'p',
+		' ', 's', 'e', 'r', 'v', 'e', 'r',
+		0,
+		/* Configure server */
+		'C' | A_UNDERLINE | COLOR_PAIR(CPID_MM_CONTENT), 'o', 'n', 'f', 'i', 'g', 'u', 'r', 'e',
+		' ', 's', 'e', 'r', 'v', 'e', 'r',
+		0,
+		/* Install server */
+		'I' | A_UNDERLINE | COLOR_PAIR(CPID_MM_CONTENT), 'n', 's', 't', 'a', 'l', 'l',
+		' ', 's', 'e', 'r', 'v', 'e', 'r',
+		0,
+		/* Migrate player */
+		'M' | A_UNDERLINE | COLOR_PAIR(CPID_MM_CONTENT), 'i', 'g', 'r', 'a', 't', 'e',
+		' ', 'p', 'l', 'a', 'y', 'e', 'r',
+		0,
+		/* Create backup */
+		'C', 'r', 'e', 'a', 't', 'e',
+		' ', 'b' | A_UNDERLINE | COLOR_PAIR(CPID_MM_CONTENT), 'a', 'c', 'k', 'u', 'p',
+		0,
+		/* Browse mods */
+		'B', 'r', 'o', 'w' | A_UNDERLINE | COLOR_PAIR(CPID_MM_CONTENT), 's', 'e',
+		' ', 'm', 'o', 'd', 's',
+		0
+	},
+	.strterms = {17, 34, 49, 64, 78},
+	.nitems = 5,
+	.selected = 0
+};
+
 int _mm_init_windows(
 	struct prc_window *desc_win, struct prc_window *content_win,
 	struct prc_context *ctx)
@@ -83,26 +116,109 @@ int _mm_init_windows(
 	return 0;
 }
 
-int _mmdw_insert_text(struct prc_window *win,
+unsigned int _mm_get_menu_idx_21(unsigned int i,
+	unsigned int j)
+{
+	return i * MAX_MENU_ITEM_COUNT + j;
+}
+
+int _mm_print_menu_item(struct prc_window *win, unsigned int y,
+	unsigned int x, struct menu_items *items,
+	unsigned int n, int idx)
+{
+	if (win == NULL || items == NULL || idx < 0)
+		return -1;
+	if (!idx)
+		return mvwaddchnstr(win->win, y, x,
+			items->items, n);
+
+	return mvwaddchnstr(win->win, y, x,
+		items->items + items->strterms[idx - 1] + 1, n);
+}
+
+int _mm_insert_text(struct prc_window *win,
 	char *s, int left, int right, int top)
 {
-	if (s == NULL)
+	if (win == NULL || s == NULL)
 		return -1;
 
-	unsigned long ogsize = strlen(s);
+	unsigned int ogsize = strlen(s);
 
-	long bufsize = win->width - right - left;
-	if(right - left < 0)
+	int bufsize = win->width - right - left;
+	if(bufsize < 0)
 		return -1;
+	else if ((unsigned int) bufsize <= ogsize)
+	{
+		if (mvwaddnstr(win->win, top, left, s, ogsize) == ERR)
+			return -1;
+		return 0;
+	}
 
-	unsigned long curptr = 0;
-	
+	unsigned int curptr = 0;
 	for (int i = 0; curptr < ogsize; ++i)
 	{
-		if (mvwaddnstr(win->win, top + i, left, s + curptr, bufsize) == ERR)
-			return -1;
+		mvwaddnstr(win->win, top + i, left, s + curptr, bufsize);
 		curptr += bufsize;
 	}
+
+	return 0;
+}
+
+int _mm_insert_menu_text(struct prc_window *win,
+	struct menu_items *items, 
+	int left, int right, int top)
+{
+	if (win == NULL || items == NULL)
+		return -1;
+
+	for (unsigned int idx = 0, y = 0; idx < items->nitems; ++idx, y += 2)
+	{
+		unsigned int ogsize = 0;
+		if (!idx)
+			ogsize = items->strterms[idx];
+		else
+			ogsize = items->strterms[idx - 1] - items->strterms[idx] + 1;
+
+		int bufsize = win->width - right - left;
+		if(bufsize < 0)
+			return -1;
+		else if ((unsigned int) bufsize <= ogsize)
+		{
+			_mm_print_menu_item(win, top + y, left, items, ogsize, idx);
+			continue;
+		}
+
+		unsigned int curptr = 0;
+		if (!idx)
+			curptr = 0;
+		else
+			curptr = items->strterms[idx - 1] + 1;
+		
+		for (int i = 0; curptr < ogsize; i += 2)
+		{
+			_mm_print_menu_item(win, top + i, left,
+				items + curptr, bufsize, idx);
+			curptr += bufsize;
+		}
+	}
+
+	return 0;
+}
+
+int _mm_restore_text0(struct prc_window *desc_win,
+	struct prc_window *content_win)
+{
+	char *dw_desc = "MurCes is a Minecraft server configuration"
+	" tool. Press 'Q' to quit. All navigations are bound to the ARROW KEYS.";
+
+	if (_mm_insert_text(desc_win,
+		dw_desc, content_win->wpad.left + 1,
+		content_win->wpad.right -1, 2) != 0)
+		return -1;
+
+	if (_mm_insert_menu_text(content_win, &_menu_items0,
+		5, 5, 2) != 0)
+		return -1;
 
 	return 0;
 }
@@ -118,6 +234,7 @@ int main_menu(struct tui_info *info)
 		eputs("Error: No memory in window pool.\n");
 		return -1;
 	}
+	wbkgd(desc_win->win, COLOR_PAIR(CPID_MM_DESC));
 
 	struct prc_window *content_win = prc_get_freeaddr();
 	if (content_win == NULL)
@@ -126,6 +243,7 @@ int main_menu(struct tui_info *info)
 		ret = -1;
 		goto cleanup;
 	}
+	wbkgd(content_win->win, COLOR_PAIR(CPID_MM_CONTENT));
 
 	if (noecho() != OK)
 	{
@@ -137,14 +255,9 @@ int main_menu(struct tui_info *info)
 	if (ret == -1)
 		goto cleanup;
 
-	refresh();
+	wnoutrefresh(stdscr);
 
-	/* prefix: 'dw' - inside 'desc_win' */
-	char *dw_desc = "MurCes is a Minecraft server configuration"
-	" tool. Press 'Q' to quit. All navigations are bound to the ARROW KEYS.";
-
-	_mmdw_insert_text(desc_win,
-		dw_desc, content_win->wpad.left, content_win->wpad.right, 2);
+	_mm_restore_text0(desc_win, content_win);
 
 	wnoutrefresh(content_win->win);
 	wnoutrefresh(desc_win->win);
@@ -156,6 +269,25 @@ int main_menu(struct tui_info *info)
 	{
 		if (c == 'q')
 			break;
+		if (c == KEY_RESIZE)
+		{
+			prc_resize_context(ctx);
+
+            prc_resize_window(desc_win, ctx);
+			prc_resize_window(content_win, ctx);
+
+            clearok(stdscr, TRUE);
+
+			_mm_restore_text0(desc_win, content_win);
+            
+            wnoutrefresh(stdscr);
+
+			wnoutrefresh(content_win->win);
+			wnoutrefresh(desc_win->win);
+
+			doupdate();
+		}
+
 		timeout(10);
 	}
 
