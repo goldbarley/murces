@@ -9,8 +9,6 @@ _Static_assert(CHAR_BIT <= 8, "Incompatible device.");
 
 int main(void)
 {
-	eputs("w");
-
 	struct tui_info info = {0};
 	int ret = 0;
 
@@ -35,7 +33,7 @@ int main(void)
 		init_pair(CPID_MM_DESC, MC_COLOR_BLACK_BROWN, MC_COLOR_LIGHT_GREY);
 		init_pair(CPID_MM_CONTENT, MC_COLOR_BLACK_BROWN, MC_COLOR_LIGHT_GREY);
 
-		bkgd(COLOR_PAIR(CPID_STDSCR));
+		// bkgd(COLOR_PAIR(CPID_STDSCR));
 	}
 	
 	if (main_menu(&info) != 0)

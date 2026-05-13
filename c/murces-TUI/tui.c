@@ -1,4 +1,3 @@
-#include <ncurses.h>
 #include <prc/prc_window.h>
 #include <prc/prc_winpool.h>
 
@@ -10,38 +9,43 @@
 static struct menu_items _menu_items0 = {
 	.items = {
 		/* Start/Stop server*/
-		'S' | A_UNDERLINE | COLOR_PAIR(CPID_MM_CONTENT) , 't', 'a', 'r', 't', '/',
-		'S' | A_UNDERLINE | COLOR_PAIR(CPID_MM_CONTENT), 't', 'o', 'p',
+		'S' | A_UNDERLINE, 't', 'a', 'r', 't', '/',
+		'S' | A_UNDERLINE, 't', 'o', 'p',
 		' ', 's', 'e', 'r', 'v', 'e', 'r',
 		0,
 		/* Configure server */
-		'C' | A_UNDERLINE | COLOR_PAIR(CPID_MM_CONTENT), 'o', 'n', 'f', 'i', 'g', 'u', 'r', 'e',
+		'C' | A_UNDERLINE, 'o', 'n', 'f', 'i', 'g', 'u', 'r', 'e',
 		' ', 's', 'e', 'r', 'v', 'e', 'r',
 		0,
 		/* Install server */
-		'I' | A_UNDERLINE | COLOR_PAIR(CPID_MM_CONTENT), 'n', 's', 't', 'a', 'l', 'l',
+		'I' | A_UNDERLINE, 'n', 's', 't', 'a', 'l', 'l',
 		' ', 's', 'e', 'r', 'v', 'e', 'r',
 		0,
 		/* Migrate player */
-		'M' | A_UNDERLINE | COLOR_PAIR(CPID_MM_CONTENT), 'i', 'g', 'r', 'a', 't', 'e',
+		'M' | A_UNDERLINE, 'i', 'g', 'r', 'a', 't', 'e',
 		' ', 'p', 'l', 'a', 'y', 'e', 'r',
 		0,
 		/* Create backup */
 		'C', 'r', 'e', 'a', 't', 'e',
-		' ', 'b' | A_UNDERLINE | COLOR_PAIR(CPID_MM_CONTENT), 'a', 'c', 'k', 'u', 'p',
+		' ', 'b' | A_UNDERLINE, 'a', 'c', 'k', 'u', 'p',
 		0,
 		/* Browse mods */
-		'B', 'r', 'o', 'w' | A_UNDERLINE | COLOR_PAIR(CPID_MM_CONTENT), 's', 'e',
+		'B', 'r', 'o', 'w' | A_UNDERLINE, 's', 'e',
+		' ', 'm', 'o', 'd', 's',
+		0,
+		/* Delete mods */
+		'D' | A_UNDERLINE, 'e', 'l', 'e', 't', 'e',
 		' ', 'm', 'o', 'd', 's',
 		0
 	},
-	.strterms = {17, 34, 49, 64, 78},
-	.nitems = 5,
+	.strterms = {17, 34, 49, 64, 78, 90, 102},
+	.nitems = 7,
 	.selected = 0
 };
 
 int _mm_init_windows(
 	struct prc_window *desc_win, struct prc_window *content_win,
+	struct prc_window *log_win,
 	struct prc_context *ctx)
 {
 	int ret = 0;
@@ -63,6 +67,13 @@ int _mm_init_windows(
 	desc_win->title = MAIN_MENU_DESC_WNAME;
 	desc_win->talign = PRC_ALIGN_TOP;
 
+	ret = prc_create_window(desc_win, ctx);
+	if (ret != FN_SUCCESS)
+	{
+		eputs("Error: Failed to create window.\n");
+		return ret;
+	}
+
 	content_win->parent = desc_win;
 	if (memset(&content_win->wbord, 0, sizeof(struct prc_border_desc)) == NULL)
 	{
@@ -71,21 +82,33 @@ int _mm_init_windows(
 	}
 
 	content_win->wpad.left = 2;
-	content_win->wpad.right = 2;
+	content_win->wpad.right = 60;
 	content_win->wpad.top = 5;
 	content_win->wpad.bottom = 1;
 	content_win->wpad.yes = TRUE;
 
 	content_win->walign = PRC_ALIGN_NONE;
 
-	ret = prc_create_window(desc_win, ctx);
+	ret = prc_create_derwin(content_win, content_win->parent, ctx);
 	if (ret != FN_SUCCESS)
 	{
-		eputs("Error: Failed to create window.\n");
+		eputs("Error: Failed to create derived window.\n");
 		return ret;
 	}
 
-	ret = prc_create_derwin(content_win, content_win->parent, ctx);
+	log_win->parent = desc_win;
+	if (memset(&log_win->wbord, 0, sizeof(struct prc_border_desc)) == NULL)
+	{
+		eputs("Error: Failed to initialize border.\n");
+		return -1;
+	}
+	log_win->wpad.left = content_win->wpad.left + content_win->width;
+	log_win->wpad.right = 2;
+	log_win->wpad.top = 5;
+	log_win->wpad.bottom = 1;
+	log_win->wpad.yes = TRUE;
+
+	ret = prc_create_derwin(log_win, log_win->parent, ctx);
 	if (ret != FN_SUCCESS)
 	{
 		eputs("Error: Failed to create derived window.\n");
@@ -107,6 +130,13 @@ int _mm_init_windows(
 	}
 
 	ret = prc_draw_window_border(content_win);
+	if (ret != FN_SUCCESS)
+	{
+		eputs("Error: Failed to draw window border.\n");
+		return ret;
+	}
+
+	ret = prc_draw_window_border(log_win);
 	if (ret != FN_SUCCESS)
 	{
 		eputs("Error: Failed to draw window border.\n");
@@ -147,9 +177,9 @@ int _mm_insert_text(struct prc_window *win,
 	int bufsize = win->width - right - left;
 	if(bufsize < 0)
 		return -1;
-	else if ((unsigned int) bufsize <= ogsize)
+	else if ((unsigned int) bufsize >= ogsize)
 	{
-		if (mvwaddnstr(win->win, top, left, s, ogsize) == ERR)
+		if (mvwaddstr(win->win, top, left, s) == ERR)
 			return -1;
 		return 0;
 	}
@@ -177,13 +207,14 @@ int _mm_insert_menu_text(struct prc_window *win,
 		if (!idx)
 			ogsize = items->strterms[idx];
 		else
-			ogsize = items->strterms[idx - 1] - items->strterms[idx] + 1;
+			ogsize = items->strterms[idx] - items->strterms[idx - 1] - 1;
 
 		int bufsize = win->width - right - left;
 		if(bufsize < 0)
 			return -1;
-		else if ((unsigned int) bufsize <= ogsize)
+		else if ((unsigned int) bufsize >= ogsize)
 		{
+			eputs("CP\n");
 			_mm_print_menu_item(win, top + y, left, items, ogsize, idx);
 			continue;
 		}
@@ -194,7 +225,7 @@ int _mm_insert_menu_text(struct prc_window *win,
 		else
 			curptr = items->strterms[idx - 1] + 1;
 		
-		for (int i = 0; curptr < ogsize; i += 2)
+		for (int i = 0; curptr < ogsize; ++i)
 		{
 			_mm_print_menu_item(win, top + i, left,
 				items + curptr, bufsize, idx);
@@ -209,16 +240,17 @@ int _mm_restore_text0(struct prc_window *desc_win,
 	struct prc_window *content_win)
 {
 	char *dw_desc = "MurCes is a Minecraft server configuration"
-	" tool. Press 'Q' to quit. All navigations are bound to the ARROW KEYS.";
+	" tool. Press <Q> to quit. All navigations are bound to <LEFT>, <RIGHT>,"
+	" <UP>, and <DOWN> keys.";
 
 	if (_mm_insert_text(desc_win,
-		dw_desc, content_win->wpad.left + 1,
-		content_win->wpad.right -1, 2) != 0)
+		dw_desc, 4, 4, 2) != 0)
 		return -1;
 
 	if (_mm_insert_menu_text(content_win, &_menu_items0,
 		5, 5, 2) != 0)
 		return -1;
+	eputs("CP1\n");
 
 	return 0;
 }
@@ -234,16 +266,23 @@ int main_menu(struct tui_info *info)
 		eputs("Error: No memory in window pool.\n");
 		return -1;
 	}
-	wbkgd(desc_win->win, COLOR_PAIR(CPID_MM_DESC));
 
 	struct prc_window *content_win = prc_get_freeaddr();
 	if (content_win == NULL)
 	{
 		eputs("Error: No memory in window pool.\n");
 		ret = -1;
+	}
+
+	struct prc_window *log_win = prc_get_freeaddr();
+	if (log_win == NULL)
+	{
+		eputs("Error: No memory in window pool.\n");
+		ret = -1;
 		goto cleanup;
 	}
-	wbkgd(content_win->win, COLOR_PAIR(CPID_MM_CONTENT));
+	else if (content_win == NULL)
+		goto cleanup;
 
 	if (noecho() != OK)
 	{
@@ -251,14 +290,19 @@ int main_menu(struct tui_info *info)
 		goto cleanup;
 	}
 
-	ret = _mm_init_windows(desc_win, content_win, ctx);
+	ret = _mm_init_windows(desc_win, content_win, log_win, ctx);
 	if (ret == -1)
 		goto cleanup;
+
+	_mm_insert_text(log_win,
+		"VERY VERY BIG BIG LONG LONG TEXT TO TEST THE HOW LONG A MESSAGE IT CAN WRAP! I AM NOT GOING TO ADD LOGIC TO CHECK FOR WORDS AND SPACES TO WRAP WORDS PROPERLY SINCE IT IS TO GODDAMN COMPLICATED!",
+		4, 4, 2);
 
 	wnoutrefresh(stdscr);
 
 	_mm_restore_text0(desc_win, content_win);
 
+	wnoutrefresh(log_win->win);
 	wnoutrefresh(content_win->win);
 	wnoutrefresh(desc_win->win);
 
@@ -275,6 +319,7 @@ int main_menu(struct tui_info *info)
 
             prc_resize_window(desc_win, ctx);
 			prc_resize_window(content_win, ctx);
+			prc_resize_window(log_win, ctx);
 
             clearok(stdscr, TRUE);
 
@@ -282,6 +327,7 @@ int main_menu(struct tui_info *info)
             
             wnoutrefresh(stdscr);
 
+			wnoutrefresh(log_win->win);
 			wnoutrefresh(content_win->win);
 			wnoutrefresh(desc_win->win);
 
@@ -292,6 +338,7 @@ int main_menu(struct tui_info *info)
 	}
 
 	cleanup:
+		prc_destroy_window(log_win, ctx);
 		prc_destroy_window(content_win, ctx);
 		prc_destroy_window(desc_win, ctx);
 
