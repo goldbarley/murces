@@ -21,6 +21,9 @@ public class Modrinth implements ModAPI {
   private String loader;
   private String email;
 
+  private static final String downloadURL = "https://api.modrinth.com/v2/project/";
+  private static final String searchURL = "https://api.modrinth.com/v2/search";
+
   public Modrinth(String type, String modName, String version, String loader, String email) {
     this.type = type;
     this.modName = modName;
@@ -48,7 +51,7 @@ public class Modrinth implements ModAPI {
   }
 
   private void download() {
-    String url = "https://api.modrinth.com/v2/project/";
+    String url = downloadURL;
     loader = "[\"" + loader + "\"]";
     version = "[\"" + version + "\"]";
 
@@ -99,7 +102,7 @@ public class Modrinth implements ModAPI {
 
   private void search(boolean mode) {
 
-    String url = "https://api.modrinth.com/v2/search";
+    String url = searchURL;
     String facets;
     if (mode) {
 

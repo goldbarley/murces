@@ -33,9 +33,14 @@ public class CurseForge implements ModAPI {
     this.API = API;
   }
 
-  HashMap<String, Integer> mLT = new HashMap<>(); // Mod Loader Translator
+  private static HashMap<String, Integer> mLT = new HashMap<>(); // Mod Loader Translator
 
-  String baseURL = "https://api.curseforge.com";
+  private static final String baseURL = "https://api.curseforge.com";
+  private static final String searchURL = baseURL + "/v1/mods/search";
+  private static final String homeURL = baseURL + "/v1/mods/featured";
+  private final String downloadURL = baseURL + "/v1/mods/" + modId + "/files?modId=" + modId + "&gameVersion=" + version
+      + "&modLoaderType="
+      + mLT.get(loader);
 
   @Override
   public void handler() {
@@ -67,7 +72,7 @@ public class CurseForge implements ModAPI {
       ErrorHelper.errorJson("Warning Loader Not Recognized");
       return;
     }
-    String url = baseURL + "/v1/mods/search";
+    String url = searchURL;
     String queries = "?gameId=" + id;
     queries += "&gameVersion=" + version;
     queries += "&searchFilter=" + URLEncoder.encode(modName, StandardCharsets.UTF_8);
@@ -95,7 +100,7 @@ public class CurseForge implements ModAPI {
 
   private void home() {
 
-    String url = baseURL + "/v1/mods/featured";
+    String url = homeURL;
 
     JsonObject request = new JsonObject();
     request.addProperty("gameId", id);
@@ -153,8 +158,7 @@ public class CurseForge implements ModAPI {
   }
 
   private void download() {
-    String url = baseURL + "/v1/mods/" + modId + "/files?modId=" + modId + "&gameVersion=" + version + "&modLoaderType="
-        + mLT.get(loader);
+    String url = downloadURL;
 
     HttpRequest downloading = HttpRequest
         .newBuilder()
