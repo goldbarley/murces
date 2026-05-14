@@ -38,9 +38,6 @@ public class CurseForge implements ModAPI {
   private static final String baseURL = "https://api.curseforge.com";
   private static final String searchURL = baseURL + "/v1/mods/search";
   private static final String homeURL = baseURL + "/v1/mods/featured";
-  private final String downloadURL = baseURL + "/v1/mods/" + modId + "/files?modId=" + modId + "&gameVersion=" + version
-      + "&modLoaderType="
-      + mLT.get(loader);
 
   @Override
   public void handler() {
@@ -158,7 +155,8 @@ public class CurseForge implements ModAPI {
   }
 
   private void download() {
-    String url = downloadURL;
+    String url = baseURL + "/v1/mods/" + modId + "/files?modId=" + modId + "&gameVersion=" + version + "&modLoaderType="
+        + mLT.get(loader);
 
     HttpRequest downloading = HttpRequest
         .newBuilder()
