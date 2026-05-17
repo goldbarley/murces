@@ -142,7 +142,7 @@ _Flow:_
 Servers take time to download (Paper, Fabric, Forge, Vanilla), compile (Spigot), and launch (`tmux`). They utilize the start/stop status codes.
 _Flow (Install & Launch - `job: 1`):_
 
-1. `{"status": 2}` _(Downloading/compiling assets or executing tmux command)_
+1. `{"status": 2, "type": "server"}` _(Downloading/compiling assets or executing tmux command)_
 2. `{"status": 3, "type": "server"}` _(Server successfully handed off to background session)_
 
 _Flow (Stop Server - `job: 2`):_

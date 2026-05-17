@@ -101,7 +101,11 @@ public class Main {
               handle = new Modrinth(subType, modName, version, loader, email);
               break;
             case "curseForge":
-              handle = new CurseForge(subType, modName, version, loader, curseAPI);
+              if (subType.equals("download") && !request.has("modId")) {
+                ErrorHelper.errorJson("Missing One or More Necessary Parameters.");
+                return;
+              }
+              handle = new CurseForge(subType, modName, version, loader, curseAPI, request.get("modId").getAsString());
               break;
             default:
               ErrorHelper.errorJson("Mod API not Supported or Incorrectly Typed");

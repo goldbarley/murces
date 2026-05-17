@@ -25,12 +25,13 @@ public class CurseForge implements ModAPI {
   private String API;
   private String modId;
 
-  public CurseForge(String type, String modName, String version, String loader, String API) {
+  public CurseForge(String type, String modName, String version, String loader, String API, String modId) {
     this.type = type;
     this.modName = modName;
     this.version = version;
     this.loader = loader;
     this.API = API;
+    this.modId = modId;
   }
 
   private static HashMap<String, Integer> mLT = new HashMap<>(); // Mod Loader Translator
