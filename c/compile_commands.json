@@ -1,0 +1,254 @@
+[
+  {
+    "file": "murces-TUI/main.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-g",
+      "-std=gnu11",
+      "-MMD",
+      "-MP",
+      "-I./precursor/include",
+      "-I./murces-TUI",
+      "-I./bridge",
+      "-I./manager",
+      "-c",
+      "murces-TUI/main.c",
+      "-o",
+      "build/murces-TUI/main.o"
+    ],
+    "directory": "/home/bread/Projects/murces/c",
+    "output": "build/murces-TUI/main.o"
+  },
+  {
+    "file": "murces-TUI/tui.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-g",
+      "-std=gnu11",
+      "-MMD",
+      "-MP",
+      "-I./precursor/include",
+      "-I./murces-TUI",
+      "-I./bridge",
+      "-I./manager",
+      "-c",
+      "murces-TUI/tui.c",
+      "-o",
+      "build/murces-TUI/tui.o"
+    ],
+    "directory": "/home/bread/Projects/murces/c",
+    "output": "build/murces-TUI/tui.o"
+  },
+  {
+    "file": "precursor/src/prc_context.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-g",
+      "-std=gnu11",
+      "-MMD",
+      "-MP",
+      "-I./precursor/include",
+      "-I./murces-TUI",
+      "-I./bridge",
+      "-I./manager",
+      "-c",
+      "precursor/src/prc_context.c",
+      "-o",
+      "build/precursor/src/prc_context.o"
+    ],
+    "directory": "/home/bread/Projects/murces/c",
+    "output": "build/precursor/src/prc_context.o"
+  },
+  {
+    "file": "precursor/src/prc_event.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-g",
+      "-std=gnu11",
+      "-MMD",
+      "-MP",
+      "-I./precursor/include",
+      "-I./murces-TUI",
+      "-I./bridge",
+      "-I./manager",
+      "-c",
+      "precursor/src/prc_event.c",
+      "-o",
+      "build/precursor/src/prc_event.o"
+    ],
+    "directory": "/home/bread/Projects/murces/c",
+    "output": "build/precursor/src/prc_event.o"
+  },
+  {
+    "file": "precursor/src/prc_window.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-g",
+      "-std=gnu11",
+      "-MMD",
+      "-MP",
+      "-I./precursor/include",
+      "-I./murces-TUI",
+      "-I./bridge",
+      "-I./manager",
+      "-c",
+      "precursor/src/prc_window.c",
+      "-o",
+      "build/precursor/src/prc_window.o"
+    ],
+    "directory": "/home/bread/Projects/murces/c",
+    "output": "build/precursor/src/prc_window.o"
+  },
+  {
+    "file": "precursor/src/prc_winpool.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-g",
+      "-std=gnu11",
+      "-MMD",
+      "-MP",
+      "-I./precursor/include",
+      "-I./murces-TUI",
+      "-I./bridge",
+      "-I./manager",
+      "-c",
+      "precursor/src/prc_winpool.c",
+      "-o",
+      "build/precursor/src/prc_winpool.o"
+    ],
+    "directory": "/home/bread/Projects/murces/c",
+    "output": "build/precursor/src/prc_winpool.o"
+  },
+  {
+    "file": "bridge/communciate.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-g",
+      "-std=gnu11",
+      "-MMD",
+      "-MP",
+      "-I./precursor/include",
+      "-I./murces-TUI",
+      "-I./bridge",
+      "-I./manager",
+      "-c",
+      "bridge/communciate.c",
+      "-o",
+      "build/bridge/communciate.o"
+    ],
+    "directory": "/home/bread/Projects/murces/c",
+    "output": "build/bridge/communciate.o"
+  },
+  {
+    "file": "bridge/cJSON.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-g",
+      "-std=gnu11",
+      "-MMD",
+      "-MP",
+      "-I./precursor/include",
+      "-I./murces-TUI",
+      "-I./bridge",
+      "-I./manager",
+      "-c",
+      "bridge/cJSON.c",
+      "-o",
+      "build/bridge/cJSON.o"
+    ],
+    "directory": "/home/bread/Projects/murces/c",
+    "output": "build/bridge/cJSON.o"
+  },
+  {
+    "file": "bridge/router.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-g",
+      "-std=gnu11",
+      "-MMD",
+      "-MP",
+      "-I./precursor/include",
+      "-I./murces-TUI",
+      "-I./bridge",
+      "-I./manager",
+      "-c",
+      "bridge/router.c",
+      "-o",
+      "build/bridge/router.o"
+    ],
+    "directory": "/home/bread/Projects/murces/c",
+    "output": "build/bridge/router.o"
+  },
+  {
+    "file": "manager/commands.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-g",
+      "-std=gnu11",
+      "-MMD",
+      "-MP",
+      "-I./precursor/include",
+      "-I./murces-TUI",
+      "-I./bridge",
+      "-I./manager",
+      "-c",
+      "manager/commands.c",
+      "-o",
+      "build/manager/commands.o"
+    ],
+    "directory": "/home/bread/Projects/murces/c",
+    "output": "build/manager/commands.o"
+  },
+  {
+    "file": "manager/server_properties.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-g",
+      "-std=gnu11",
+      "-MMD",
+      "-MP",
+      "-I./precursor/include",
+      "-I./murces-TUI",
+      "-I./bridge",
+      "-I./manager",
+      "-c",
+      "manager/server_properties.c",
+      "-o",
+      "build/manager/server_properties.o"
+    ],
+    "directory": "/home/bread/Projects/murces/c",
+    "output": "build/manager/server_properties.o"
+  },
+  {
+    "file": "manager/modfiles.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-g",
+      "-std=gnu11",
+      "-MMD",
+      "-MP",
+      "-I./precursor/include",
+      "-I./murces-TUI",
+      "-I./bridge",
+      "-I./manager",
+      "-c",
+      "manager/modfiles.c",
+      "-o",
+      "build/manager/modfiles.o"
+    ],
+    "directory": "/home/bread/Projects/murces/c",
+    "output": "build/manager/modfiles.o"
+  }
+]
