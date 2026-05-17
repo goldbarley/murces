@@ -7,3 +7,5 @@ java/orchestrator/mods
 main
 build
 c/murces-TUI/precursor
+c/compile_commands.json
+c/murces-TUI/compile_commands.json

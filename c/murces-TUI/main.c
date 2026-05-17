@@ -1,13 +1,34 @@
 #include <prc/prc_context.h>
 
 #include "tui.h"
-
 #include <assert.h>
 #include <limits.h>
+#include <stdio.h>
 
 _Static_assert(CHAR_BIT <= 8, "Incompatible device.");
+void threadHelper();
 
-int main(void) {
+int main(int argc, char *argv[]) {
+
+  if (argc > 2) {
+    switch (argv[1][0]) {
+    case 'k':
+      if (argc == 3)
+        threadHelper();
+      break;
+    case 's':
+      if (argc == 8)
+        threadHelper();
+      break;
+    case 'm':
+      if (argc == 9)
+        threadHelper();
+      break;
+    default:
+      printf("Messy Parameters, ignoring");
+    }
+  }
+
   struct tui_info info = {0};
   int ret = 0;
 
@@ -50,4 +71,8 @@ kill_em:
   prc_kill_mother();
 
   return ret;
+}
+
+void threadHelper() {
+  // todo
 }
