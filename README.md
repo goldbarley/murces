@@ -57,7 +57,7 @@ If using a LSP (Language Server Protocol) you can use the `compile_commands.json
 JSON file, run the following commands:
 ```sh
 pip install compiledb
-compiledb make
+compiledb make -C c
 ```
 
 If this command fails, you probably need a virtual environment to run `pip` commands:
