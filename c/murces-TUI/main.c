@@ -1,6 +1,6 @@
 #include "tui.h"
-#include <../bridge/communciate.h>
-#include <../bridge/router.h>
+#include "communciate.h"
+#include "router.h"
 #include <assert.h>
 #include <limits.h>
 #include <prc/prc_context.h>
