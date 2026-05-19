@@ -3,6 +3,8 @@
 
 #include <prc/prc_context.h>
 
+#include <stdint.h>
+
 #define MAIN_MENU_DESC_WNAME "MurCes v1.0.0"
 
 #ifndef NDEBUG
@@ -21,8 +23,9 @@
 #define eprintf(...)
 #endif /* NDEBUG */
 
-#define MAX_MENU_ITEM_COUNT 20
-#define MAX_MENU_ITEM_CHAR_COUNT 256
+#define MAX_MENU_ITEM_COUNT (20)
+#define MAX_MENU_ITEM_CHAR_COUNT (256)
+#define MAX_STR_MENU_ITEMS (256)
 
 enum cpid
 {
@@ -37,20 +40,9 @@ enum cpid
 
 enum mc_colors
 {
-	MC_COLOR_DARK_BLUE = 8,
-	MC_COLOR_LIGHT_CYAN,
-	MC_COLOR_LIGHT_GREY,
-	MC_COLOR_BLACK_BROWN,
-	MC_COLOR_VIOLET_BLUE,
-	MC_COLOR_LITTLE_BROWN_RED
+	MC_COLOR_DIRT_BROWN = 8,
+	MC_COLOR_GRASS_GREEN
 };
-
-#define MC_COLOR_DARK_BLUE (MC_COLOR_DARK_BLUE)
-#define MC_COLOR_LIGHT_CYAN (MC_COLOR_LIGHT_CYAN)
-#define MC_COLOR_LIGHT_GREY (MC_COLOR_LIGHT_GREY)
-#define MC_COLOR_BLACK_BROWN (MC_COLOR_BLACK_BROWN)
-#define MC_COLOR_VIOLET_BLUE (MC_COLOR_VIOLET_BLUE)
-#define MC_COLOR_LITTLE_BROWN_RED (MC_COLOR_LITTLE_BROWN_RED)
 
 struct tui_info
 {
@@ -62,8 +54,18 @@ struct menu_items
 	chtype items[MAX_MENU_ITEM_CHAR_COUNT * MAX_MENU_ITEM_COUNT];
 	unsigned long int strterms[MAX_MENU_ITEM_COUNT];
 	unsigned int nitems;
-	unsigned long int selected;
+	uint64_t selected;
 };
+
+struct str_menu_items
+{
+	char *items[MAX_STR_MENU_ITEMS];
+	unsigned int nitems;
+	uint64_t selected[(MAX_STR_MENU_ITEMS + 63) >> 6];
+};
+
+int mm_insert_text(struct prc_window *win, short pair,
+	char *s, int left, int right, int top);
 
 int main_menu(struct tui_info *info);
 

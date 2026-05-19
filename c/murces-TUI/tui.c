@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <string.h>
 
-static struct menu_items _menu_items0 = {
+static struct menu_items menu_items0__ = {
 	.items = {
 		/* Start/Stop server*/
 		'S' | A_UNDERLINE, 't', 'a', 'r', 't', '/',
@@ -43,7 +43,7 @@ static struct menu_items _menu_items0 = {
 	.selected = 0
 };
 
-int _mm_init_windows(
+int mm_init_windows__(
 	struct prc_window *desc_win, struct prc_window *content_win,
 	struct prc_window *log_win,
 	struct prc_context *ctx)
@@ -73,6 +73,7 @@ int _mm_init_windows(
 		eputs("Error: Failed to create window.\n");
 		return ret;
 	}
+	// wbkgd(desc_win->win, COLOR_PAIR(CPID_MM_DESC));
 
 	content_win->parent = desc_win;
 	if (memset(&content_win->wbord, 0, sizeof(struct prc_border_desc)) == NULL)
@@ -82,7 +83,7 @@ int _mm_init_windows(
 	}
 
 	content_win->wpad.left = 2;
-	content_win->wpad.right = 60;
+	content_win->wpad.right = desc_win->width * 3 / 10;
 	content_win->wpad.top = 5;
 	content_win->wpad.bottom = 1;
 	content_win->wpad.yes = TRUE;
@@ -95,6 +96,7 @@ int _mm_init_windows(
 		eputs("Error: Failed to create derived window.\n");
 		return ret;
 	}
+	// wbkgd(content_win->win, COLOR_PAIR(CPID_MM_CONTENT));
 
 	log_win->parent = desc_win;
 	if (memset(&log_win->wbord, 0, sizeof(struct prc_border_desc)) == NULL)
@@ -102,7 +104,7 @@ int _mm_init_windows(
 		eputs("Error: Failed to initialize border.\n");
 		return -1;
 	}
-	log_win->wpad.left = content_win->wpad.left + content_win->width;
+	log_win->wpad.left = desc_win->width * 3 / 10;
 	log_win->wpad.right = 2;
 	log_win->wpad.top = 5;
 	log_win->wpad.bottom = 1;
@@ -114,6 +116,7 @@ int _mm_init_windows(
 		eputs("Error: Failed to create derived window.\n");
 		return ret;
 	}
+	// wbkgd(log_win->win, COLOR_PAIR(CPID_MM_CONTENT));
 
 	ret = prc_draw_window_border(desc_win);
 	if (ret != FN_SUCCESS)
@@ -146,13 +149,13 @@ int _mm_init_windows(
 	return 0;
 }
 
-unsigned int _mm_get_menu_idx_21(unsigned int i,
+unsigned int mm_get_menu_idx_21__(unsigned int i,
 	unsigned int j)
 {
 	return i * MAX_MENU_ITEM_COUNT + j;
 }
 
-int _mm_print_menu_item(struct prc_window *win, unsigned int y,
+int mm_print_menu_item__(struct prc_window *win, unsigned int y,
 	unsigned int x, struct menu_items *items,
 	unsigned int n, int idx)
 {
@@ -166,7 +169,7 @@ int _mm_print_menu_item(struct prc_window *win, unsigned int y,
 		items->items + items->strterms[idx - 1] + 1, n);
 }
 
-int _mm_insert_text(struct prc_window *win,
+int mm_insert_text(struct prc_window *win, short pair,
 	char *s, int left, int right, int top)
 {
 	if (win == NULL || s == NULL)
@@ -179,22 +182,28 @@ int _mm_insert_text(struct prc_window *win,
 		return -1;
 	else if ((unsigned int) bufsize >= ogsize)
 	{
+		// wattron(win->win, pair);
 		if (mvwaddstr(win->win, top, left, s) == ERR)
 			return -1;
+		// wattroff(win->win, pair);
 		return 0;
 	}
 
 	unsigned int curptr = 0;
 	for (int i = 0; curptr < ogsize; ++i)
 	{
+		if (pair >= 0)
+			wattron(win->win, pair);
 		mvwaddnstr(win->win, top + i, left, s + curptr, bufsize);
+		if (pair >= 0)
+			wattroff(win->win, pair);
 		curptr += bufsize;
 	}
 
 	return 0;
 }
 
-int _mm_insert_menu_text(struct prc_window *win,
+int mm_insert_menu_text__(struct prc_window *win,
 	struct menu_items *items, 
 	int left, int right, int top)
 {
@@ -214,8 +223,7 @@ int _mm_insert_menu_text(struct prc_window *win,
 			return -1;
 		else if ((unsigned int) bufsize >= ogsize)
 		{
-			eputs("CP\n");
-			_mm_print_menu_item(win, top + y, left, items, ogsize, idx);
+			mm_print_menu_item__(win, top + y, left, items, ogsize, idx);
 			continue;
 		}
 
@@ -227,7 +235,7 @@ int _mm_insert_menu_text(struct prc_window *win,
 		
 		for (int i = 0; curptr < ogsize; ++i)
 		{
-			_mm_print_menu_item(win, top + i, left,
+			mm_print_menu_item__(win, top + i, left,
 				items + curptr, bufsize, idx);
 			curptr += bufsize;
 		}
@@ -236,21 +244,20 @@ int _mm_insert_menu_text(struct prc_window *win,
 	return 0;
 }
 
-int _mm_restore_text0(struct prc_window *desc_win,
+int mm_restore_text0__(struct prc_window *desc_win,
 	struct prc_window *content_win)
 {
 	char *dw_desc = "MurCes is a Minecraft server configuration"
 	" tool. Press <Q> to quit. All navigations are bound to <LEFT>, <RIGHT>,"
 	" <UP>, and <DOWN> keys.";
-
-	if (_mm_insert_text(desc_win,
+	
+	if (mm_insert_text(desc_win, -1,
 		dw_desc, 4, 4, 2) != 0)
 		return -1;
 
-	if (_mm_insert_menu_text(content_win, &_menu_items0,
+	if (mm_insert_menu_text__(content_win, &menu_items0__,
 		5, 5, 2) != 0)
 		return -1;
-	eputs("CP1\n");
 
 	return 0;
 }
@@ -290,17 +297,17 @@ int main_menu(struct tui_info *info)
 		goto cleanup;
 	}
 
-	ret = _mm_init_windows(desc_win, content_win, log_win, ctx);
+	ret = mm_init_windows__(desc_win, content_win, log_win, ctx);
 	if (ret == -1)
 		goto cleanup;
 
-	_mm_insert_text(log_win,
+	mm_insert_text(log_win, -1,
 		"VERY VERY BIG BIG LONG LONG TEXT TO TEST THE HOW LONG A MESSAGE IT CAN WRAP! I AM NOT GOING TO ADD LOGIC TO CHECK FOR WORDS AND SPACES TO WRAP WORDS PROPERLY SINCE IT IS TO GODDAMN COMPLICATED!",
 		4, 4, 2);
 
 	wnoutrefresh(stdscr);
 
-	_mm_restore_text0(desc_win, content_win);
+	mm_restore_text0__(desc_win, content_win);
 
 	wnoutrefresh(log_win->win);
 	wnoutrefresh(content_win->win);
@@ -323,7 +330,7 @@ int main_menu(struct tui_info *info)
 
             clearok(stdscr, TRUE);
 
-			_mm_restore_text0(desc_win, content_win);
+			mm_restore_text0__(desc_win, content_win);
             
             wnoutrefresh(stdscr);
 
