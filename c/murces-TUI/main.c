@@ -1,12 +1,15 @@
-#include <prc/prc_context.h>
-
 #include "tui.h"
+#include <../bridge/communciate.h>
+#include <../bridge/router.h>
 #include <assert.h>
 #include <limits.h>
+#include <prc/prc_context.h>
+#include <pthread.h>
 #include <stdio.h>
 
 _Static_assert(CHAR_BIT <= 8, "Incompatible device.");
-void threadHelper();
+int threadStarter(void);
+pthread_t router;
 
 int main(int argc, char *argv[]) {
 
@@ -14,15 +17,15 @@ int main(int argc, char *argv[]) {
     switch (argv[1][0]) {
     case 'k':
       if (argc == 3)
-        threadHelper();
+        threadStarter();
       break;
     case 's':
       if (argc == 8)
-        threadHelper();
+        threadStarter();
       break;
     case 'm':
       if (argc == 9)
-        threadHelper();
+        threadStarter();
       break;
     default:
       printf("Messy Parameters, ignoring");
@@ -73,6 +76,12 @@ kill_em:
   return ret;
 }
 
-void threadHelper() {
-  // todo
+int threadStarter(void) {
+  void *IOP = init_orchestrator(1);
+
+  controlRouter(1);
+
+  if (pthread_create(&router, NULL, initRouter, IOP) != 0)
+    return -1;
+  return 0;
 }
