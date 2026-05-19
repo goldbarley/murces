@@ -54,7 +54,10 @@ cJSON *dequeue(responseQueue *q) {
   return response;
 }
 
-int initRouter(int *IOP) {
+void *initRouter(void *temp) {
+
+  int *IOP = (int *)temp;
+
   struct pollfd fds[1];
   fds[0].fd = IOP[1];
   fds[0].events = POLLIN;
@@ -104,7 +107,7 @@ int initRouter(int *IOP) {
 
     sem_post(&semSuper);
   }
-  return 0;
+  return NULL;
 }
 
 void controlRouter(short i) { flag = i; }

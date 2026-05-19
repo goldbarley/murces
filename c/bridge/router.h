@@ -3,7 +3,7 @@
 
 #include "cJSON.h"
 
-int initRouter(int *IOP);
+void *initRouter(void *temp);
 void controlRouter(short i);
 void cleanupRouter();
 
