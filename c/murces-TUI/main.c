@@ -68,7 +68,6 @@ int main(int argc, char *argv[]) {
     goto kill_em;
   }
 
-  return ret;
 kill_em:
   prc_destroy_context(&info.ctx);
   prc_kill_mother();
