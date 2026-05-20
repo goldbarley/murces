@@ -40,6 +40,12 @@ int main(int argc, char *argv[]) {
     goto kill_em;
   }
 
+  if (noecho() != OK)
+	{
+		ret = -1;
+		goto kill_em;
+	}
+
   if (info.ctx.term_has_color) {
     start_color();
 

@@ -1,3 +1,5 @@
+#include <ncurses.h>
+#include <prc/prc_event.h>
 #include <prc/prc_window.h>
 #include <prc/prc_winpool.h>
 
@@ -5,50 +7,53 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <sys/select.h>
 
 static struct menu_items menu_items0__ = {
 	.items = {
-		/* Start/Stop server*/
+		/* 1 Start/Stop server*/
 		'S' | A_UNDERLINE, 't', 'a', 'r', 't', '/',
 		'S' | A_UNDERLINE, 't', 'o', 'p',
 		' ', 's', 'e', 'r', 'v', 'e', 'r',
 		0,
-		/* Configure server */
+		/* 2 Configure server */
 		'C' | A_UNDERLINE, 'o', 'n', 'f', 'i', 'g', 'u', 'r', 'e',
 		' ', 's', 'e', 'r', 'v', 'e', 'r',
 		0,
-		/* Install server */
+		/* 3 Install server */
 		'I' | A_UNDERLINE, 'n', 's', 't', 'a', 'l', 'l',
 		' ', 's', 'e', 'r', 'v', 'e', 'r',
 		0,
-		/* Migrate player */
+		/* 4 Migrate player */
 		'M' | A_UNDERLINE, 'i', 'g', 'r', 'a', 't', 'e',
 		' ', 'p', 'l', 'a', 'y', 'e', 'r',
 		0,
-		/* Create backup */
+		/* 5 Create backup */
 		'C', 'r', 'e', 'a', 't', 'e',
 		' ', 'b' | A_UNDERLINE, 'a', 'c', 'k', 'u', 'p',
 		0,
-		/* Browse mods */
+		/* 6 Browse mods */
 		'B', 'r', 'o', 'w' | A_UNDERLINE, 's', 'e',
 		' ', 'm', 'o', 'd', 's',
 		0,
-		/* Delete mods */
+		/* 7 Delete mods */
 		'D' | A_UNDERLINE, 'e', 'l', 'e', 't', 'e',
 		' ', 'm', 'o', 'd', 's',
 		0
 	},
 	.strterms = {17, 34, 49, 64, 78, 90, 102},
 	.nitems = 7,
-	.selected = 0
+	.selected = 1
 };
 
-int mm_init_windows__(
+int mm_init_windows(
 	struct prc_window *desc_win, struct prc_window *content_win,
 	struct prc_window *log_win,
-	struct prc_context *ctx)
+	struct tui_info *info)
 {
 	int ret = 0;
+
+	struct prc_context *ctx = &info->ctx;
 
 	if (memset(&desc_win->wbord, 0, sizeof(struct prc_border_desc)) == NULL)
 	{
@@ -104,7 +109,7 @@ int mm_init_windows__(
 		eputs("Error: Failed to initialize border.\n");
 		return -1;
 	}
-	log_win->wpad.left = desc_win->width * 3 / 10;
+	log_win->wpad.left = content_win->wpad.left + content_win->width + 1;
 	log_win->wpad.right = 2;
 	log_win->wpad.top = 5;
 	log_win->wpad.bottom = 1;
@@ -146,6 +151,10 @@ int mm_init_windows__(
 		return ret;
 	}
 
+	info->desc_win = desc_win;
+	info->content_win = content_win;
+	info->log_win = log_win;
+
 	return 0;
 }
 
@@ -155,7 +164,7 @@ unsigned int mm_get_menu_idx_21__(unsigned int i,
 	return i * MAX_MENU_ITEM_COUNT + j;
 }
 
-int mm_print_menu_item__(struct prc_window *win, unsigned int y,
+int mm_print_menu_item(struct prc_window *win, unsigned int y,
 	unsigned int x, struct menu_items *items,
 	unsigned int n, int idx)
 {
@@ -167,6 +176,113 @@ int mm_print_menu_item__(struct prc_window *win, unsigned int y,
 
 	return mvwaddchnstr(win->win, y, x,
 		items->items + items->strterms[idx - 1] + 1, n);
+}
+
+int mm_insert_menu_text(struct prc_window *win,
+	struct menu_items *items, 
+	int left, int right, int top)
+{
+	if (win == NULL || items == NULL)
+		return -1;
+
+	for (unsigned int idx = 0, y = 0; idx < items->nitems; ++idx, y += 2)
+	{
+		unsigned int ogsize = 0;
+		if (!idx)
+			ogsize = items->strterms[idx];
+		else
+			ogsize = items->strterms[idx] - items->strterms[idx - 1] - 1;
+
+		int bufsize = win->width - right - left;
+		if(bufsize < 0)
+			return -1;
+		else if ((unsigned int) bufsize >= ogsize)
+		{
+			mm_print_menu_item(win, top + y, left, items, ogsize, idx);
+			continue;
+		}
+
+		unsigned int curptr = 0;
+		if (!idx)
+			curptr = 0;
+		else
+			curptr = items->strterms[idx - 1] + 1;
+		
+		for (int i = 0; curptr < ogsize; ++i)
+		{
+			mm_print_menu_item(win, top + i, left,
+				items, bufsize, idx);
+			curptr += bufsize;
+		}
+	}
+
+	return 0;
+}
+
+int mtui_rmhl_menu_item(struct menu_items *items, int idx)
+{
+	if (items == NULL || idx < 0)
+		return -1;
+
+	unsigned int len = 0;
+	if (!idx)
+	{
+		len = items->strterms[0];
+		for (unsigned int i = 0; i < len; ++i)
+			items->items[i] &= ~A_STANDOUT;
+		return 0;
+	}
+
+	unsigned int start = items->strterms[idx - 1] + 1;
+	len = start + items->strterms[idx] - items->strterms[idx - 1] - 1;
+	for (unsigned int i = start; i < len; ++i)
+		items->items[i] &= ~A_STANDOUT;
+
+	return 0;
+}
+
+int mtui_highlight_menu_item(struct menu_items *items, int idx)
+{
+	if (items == NULL || idx < 0)
+		return -1;
+
+	unsigned int len = 0;
+	if (!idx)
+	{
+		len = items->strterms[0];
+		for (unsigned int i = 0; i < len; ++i)
+			items->items[i] |= A_STANDOUT;
+		return 0;
+	}
+
+	unsigned int start = items->strterms[idx - 1] + 1;
+	len = start + items->strterms[idx] - items->strterms[idx - 1] - 1;
+	for (unsigned int i = start; i < len; ++i)
+		items->items[i] |= A_STANDOUT;
+
+	return 0;
+}
+
+int mm_restore_text0(struct prc_window *desc_win,
+	struct prc_window *content_win)
+{
+	char *dw_desc = "MurCes is a Minecraft server configuration"
+	" tool. Press <Q> to quit. All navigations are bound to <LEFT>, <RIGHT>,"
+	" <UP>, and <DOWN> keys.";
+	
+	if (mm_insert_text(desc_win, -1,
+		dw_desc, 4, 4, 2) != 0)
+		return -1;
+
+	if (mtui_highlight_menu_item(&menu_items0__,
+			__builtin_ctz(menu_items0__.selected)) != 0)
+		return -1;
+		
+	if (mm_insert_menu_text(content_win, &menu_items0__,
+		4, 4, 2) != 0)
+		return -1;
+
+	return 0;
 }
 
 int mm_insert_text(struct prc_window *win, short pair,
@@ -203,63 +319,60 @@ int mm_insert_text(struct prc_window *win, short pair,
 	return 0;
 }
 
-int mm_insert_menu_text__(struct prc_window *win,
-	struct menu_items *items, 
-	int left, int right, int top)
+int mtui_resize_windows(struct tui_info *info)
 {
-	if (win == NULL || items == NULL)
-		return -1;
+	struct prc_context* ctx = &info->ctx;
+	struct prc_window *desc_win = info->desc_win;
+	struct prc_window *content_win = info->content_win;
+	struct prc_window *log_win = info->log_win;
 
-	for (unsigned int idx = 0, y = 0; idx < items->nitems; ++idx, y += 2)
-	{
-		unsigned int ogsize = 0;
-		if (!idx)
-			ogsize = items->strterms[idx];
-		else
-			ogsize = items->strterms[idx] - items->strterms[idx - 1] - 1;
+	int ret = 0;
 
-		int bufsize = win->width - right - left;
-		if(bufsize < 0)
-			return -1;
-		else if ((unsigned int) bufsize >= ogsize)
-		{
-			mm_print_menu_item__(win, top + y, left, items, ogsize, idx);
-			continue;
-		}
+	ret = prc_resize_context(ctx);
+	if (ret != FN_SUCCESS)
+		return ret;
 
-		unsigned int curptr = 0;
-		if (!idx)
-			curptr = 0;
-		else
-			curptr = items->strterms[idx - 1] + 1;
-		
-		for (int i = 0; curptr < ogsize; ++i)
-		{
-			mm_print_menu_item__(win, top + i, left,
-				items + curptr, bufsize, idx);
-			curptr += bufsize;
-		}
-	}
+	ret = prc_resize_window(desc_win, ctx);
+	if (ret != FN_SUCCESS)
+		return ret;
 
-	return 0;
-}
+	ret = prc_resize_window(content_win, ctx);
+	if (ret != FN_SUCCESS)
+		return ret;
 
-int mm_restore_text0__(struct prc_window *desc_win,
-	struct prc_window *content_win)
-{
-	char *dw_desc = "MurCes is a Minecraft server configuration"
-	" tool. Press <Q> to quit. All navigations are bound to <LEFT>, <RIGHT>,"
-	" <UP>, and <DOWN> keys.";
+	ret = prc_resize_window(log_win, ctx);
+	if (ret != FN_SUCCESS)
+		return ret;
+
+	ret = clearok(stdscr, TRUE);
+	if (ret != OK)
+		return ret;
+
+	ret = mm_restore_text0(desc_win, content_win);
+	if (ret != 0)
+		return ret;
 	
-	if (mm_insert_text(desc_win, -1,
-		dw_desc, 4, 4, 2) != 0)
-		return -1;
+	ret = wnoutrefresh(stdscr);
+	if (ret != OK)
+		return ret;
 
-	if (mm_insert_menu_text__(content_win, &menu_items0__,
-		5, 5, 2) != 0)
-		return -1;
+	ret = wnoutrefresh(log_win->win);
+	if (ret != OK)
+		return ret;
 
-	return 0;
+	ret = wnoutrefresh(content_win->win);
+	if (ret != OK)
+		return ret;
+
+	ret = wnoutrefresh(desc_win->win);
+	if (ret != OK)
+		return ret;
+
+	ret = doupdate();
+	if (ret != OK)
+		return ret;
+
+	return ret;
 }
 
 int main_menu(struct tui_info *info)
@@ -291,15 +404,21 @@ int main_menu(struct tui_info *info)
 	else if (content_win == NULL)
 		goto cleanup;
 
-	if (noecho() != OK)
+	ret = mm_init_windows(desc_win, content_win, log_win, info);
+	if (ret == -1)
+		goto cleanup;
+
+	if (nodelay(content_win->win, TRUE) != OK)
 	{
 		ret = -1;
 		goto cleanup;
 	}
 
-	ret = mm_init_windows__(desc_win, content_win, log_win, ctx);
-	if (ret == -1)
+	if (keypad(content_win->win, TRUE) != OK)
+	{
+		ret = -1;
 		goto cleanup;
+	}
 
 	mm_insert_text(log_win, -1,
 		"VERY VERY BIG BIG LONG LONG TEXT TO TEST THE HOW LONG A MESSAGE IT CAN WRAP! I AM NOT GOING TO ADD LOGIC TO CHECK FOR WORDS AND SPACES TO WRAP WORDS PROPERLY SINCE IT IS TO GODDAMN COMPLICATED!",
@@ -307,7 +426,7 @@ int main_menu(struct tui_info *info)
 
 	wnoutrefresh(stdscr);
 
-	mm_restore_text0__(desc_win, content_win);
+	mm_restore_text0(desc_win, content_win);
 
 	wnoutrefresh(log_win->win);
 	wnoutrefresh(content_win->win);
@@ -315,34 +434,79 @@ int main_menu(struct tui_info *info)
 
 	doupdate();
 
-	chtype c = 0;
-	while((c = wgetch(content_win->win)))
+	uint32_t c = 0;
+	unsigned char item_selected = 0;
+	unsigned char chselect = 0;
+	struct prc_generic_event fevt = {0};
+	do
 	{
-		if (c == 'q')
-			break;
-		if (c == KEY_RESIZE)
+		wmove(content_win->win, 0, 0);
+		prc_poll_for_event(content_win);
+		while ((ret = prc_get_first_event(&fevt)) == FN_SUCCESS)
 		{
-			prc_resize_context(ctx);
+			c = fevt.detail;
+			
+			if (c == KEY_UP)
+			{
+				if (item_selected == 0)
+				{
+					prc_use_event();
+					continue;
+				}
 
-            prc_resize_window(desc_win, ctx);
-			prc_resize_window(content_win, ctx);
-			prc_resize_window(log_win, ctx);
+				chselect = TRUE;
+				menu_items0__.selected = 0;
 
-            clearok(stdscr, TRUE);
+				if (mtui_rmhl_menu_item(&menu_items0__, item_selected)
+					!= 0)
+					goto cleanup;
 
-			mm_restore_text0__(desc_win, content_win);
-            
-            wnoutrefresh(stdscr);
+				--item_selected;
+				PRC_SETBIT_1(menu_items0__.selected, item_selected);
+			}
+			else if (c == KEY_DOWN)
+			{
+				if (item_selected == menu_items0__.nitems - 1)
+				{
+					prc_use_event();
+					continue;
+				}
+				
+				chselect = TRUE;
+				menu_items0__.selected = 0;
 
-			wnoutrefresh(log_win->win);
-			wnoutrefresh(content_win->win);
-			wnoutrefresh(desc_win->win);
+				if (mtui_rmhl_menu_item(&menu_items0__, item_selected)
+					!= 0)
+					goto cleanup;
 
-			doupdate();
+				++item_selected;
+				PRC_SETBIT_1(menu_items0__.selected, item_selected);
+			}
+			else if (c == KEY_RESIZE)
+				if (mtui_resize_windows(info) != 0)
+					goto cleanup;
+
+			if (chselect)
+			{
+				wclear(content_win->win);
+				prc_draw_window_border(content_win);
+
+				if (mtui_highlight_menu_item(&menu_items0__, item_selected)
+					!= 0)
+					goto cleanup;
+
+				if (mm_insert_menu_text(content_win, &menu_items0__,
+					4, 4, 2) != 0)
+					return -1;
+
+				wnoutrefresh(content_win->win);
+			}
+
+			prc_use_event();
 		}
-
-		timeout(10);
-	}
+		doupdate();
+		wtimeout(content_win->win, 10);
+	} while (c != 'q' && c != 'Q');
 
 	cleanup:
 		prc_destroy_window(log_win, ctx);
