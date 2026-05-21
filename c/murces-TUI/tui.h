@@ -9,6 +9,40 @@
 #define MAIN_MENU_DESC_WNAME "MurCes v1.0.0"
 
 #ifndef NDEBUG
+#define oputs(s) \
+	do \
+	{ \
+		attron(COLOR_PAIR(CPID_OK_MSG)); \
+		mvaddstr(0, 0, s); \
+		attroff(COLOR_PAIR(CPID_OK_MSG)); \
+		getch(); \
+	} while (0)
+#define oprintf(...) \
+	do \
+	{ \
+		attron(COLOR_PAIR(CPID_OK_MSG)); \
+		mvwprintw(stdscr, 0, 0, __VA_ARGS__); \
+		attroff(COLOR_PAIR(CPID_OK_MSG)); \
+		getch(); \
+	} while (0)
+
+#define wputs(s) \
+	do \
+	{ \
+		attron(COLOR_PAIR(CPID_WRN_MSG)); \
+		mvaddstr(0, 0, s); \
+		attroff(COLOR_PAIR(CPID_WRN_MSG)); \
+		getch(); \
+	} while (0)
+#define wprintf(...) \
+	do \
+	{ \
+		attron(COLOR_PAIR(CPID_WRN_MSG)); \
+		mvwprintw(stdscr, 0, 0, __VA_ARGS__); \
+		attroff(COLOR_PAIR(CPID_WRN_MSG)); \
+		getch(); \
+	} while (0)
+
 #define eputs(s) \
 	do \
 	{ \
@@ -45,7 +79,9 @@ enum cpid
 	CPID_STDSCR = 1,
 	CPID_MM_DESC,
 	CPID_MM_CONTENT,
-	CPID_ERR_MSG
+	CPID_OK_MSG,
+	CPID_WRN_MSG,
+	CPID_ERR_MSG,
 };
 
 enum mc_colors
@@ -57,13 +93,6 @@ enum mc_colors
 	MC_COLOR_VIOLET_BLUE,
 	MC_COLOR_LITTLE_BROWN_RED
 };
-
-#define MC_COLOR_DARK_BLUE (MC_COLOR_DARK_BLUE)
-#define MC_COLOR_LIGHT_CYAN (MC_COLOR_LIGHT_CYAN)
-#define MC_COLOR_LIGHT_GREY (MC_COLOR_LIGHT_GREY)
-#define MC_COLOR_BLACK_BROWN (MC_COLOR_BLACK_BROWN)
-#define MC_COLOR_VIOLET_BLUE (MC_COLOR_VIOLET_BLUE)
-#define MC_COLOR_LITTLE_BROWN_RED (MC_COLOR_LITTLE_BROWN_RED)
 
 struct tui_info
 {
