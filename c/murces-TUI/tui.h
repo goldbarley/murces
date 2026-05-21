@@ -30,11 +30,11 @@
 #define eprintf(...)
 #endif /* NDEBUG */
 
-#define DRAW_LAYOUT__(n) m##n##_draw_layout##n
-#define DRAW_LAYOUT(n) DRAW_LAYOUT__(n)
-
-#define OPEN_MENU__(n) menu##n
-#define OPEN_MENU(n) OPEN_MENU__(n)
+#define OPEN_MENU(n) \
+	werase(mtstdbigwin->win); \
+	wnoutrefresh(mtstdbigwin->win); \
+	doupdate(); \
+	menus__[n](info)
 
 #define MAX_MENU_ITEM_COUNT (20)
 #define MAX_MENU_ITEM_CHAR_COUNT (256)
@@ -120,32 +120,44 @@ void mm_destroy_layout0(void);
 
 /* MENU 1 */
 int menu1(struct tui_info *info);
-int DRAW_LAYOUT(1)(void);
+int m1_init_windows(struct tui_info *info);
+void m1_destroy_layout1(void);
+int m1_draw_layout1(void);
 
 /* MENU 2 */
 int menu2(struct tui_info *info);
-int DRAW_LAYOUT(2)(void);
+int m2_init_windows(struct tui_info *info);
+void m2_destroy_layout2(void);
+int m2_draw_layout2(void);
 
 /* MENU 3 */
-int menu3(struct tui_info* info);
+int menu3(struct tui_info *info);
 int m3_init_windows(struct tui_info *info);
 void m3_destroy_layout3(void);
-int DRAW_LAYOUT(3)(void);
+int m3_draw_layout3(void);
 
 /* MENU 4 */
 int menu4(struct tui_info *info);
-int DRAW_LAYOUT(4)(void);
+int m4_init_windows(struct tui_info *info);
+void m4_destroy_layout4(void);
+int m4_draw_layout4(void);
 
 /* MENU 5 */
 int menu5(struct tui_info *info);
-int DRAW_LAYOUT(5)(void);
+int m5_init_windows(struct tui_info *info);
+void m5_destroy_layout5(void);
+int m5_draw_layout5(void);
 
 /* MENU 6 */
 int menu6(struct tui_info *info);
-int DRAW_LAYOUT(6)(void);
+int m6_init_windows(struct tui_info *info);
+void m6_destroy_layout6(void);
+int m6_draw_layout6(void);
 
 /* MENU 7 */
 int menu7(struct tui_info *info);
-int DRAW_LAYOUT(7)(void);
+int m7_init_windows(struct tui_info *info);
+void m7_destroy_layout7(void);
+int m7_draw_layout7(void);
 
 #endif /* MTUI_TUI_H */

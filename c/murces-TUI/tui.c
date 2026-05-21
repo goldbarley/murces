@@ -59,10 +59,10 @@ static struct menu_items menu_items0__ = {
 static int (*menus__[7])(struct tui_info *) = {
 	NULL,
 	NULL,
-	menu3,
 	NULL,
 	NULL,
 	NULL,
+	menu6,
 	NULL
 };
 
@@ -531,15 +531,14 @@ int main_menu(struct tui_info *info)
 				case KEY_ENTER:
 				case '\n':
 				case '\r':
-					werase(mtstdbigwin->win);
-					wnoutrefresh(mtstdbigwin->win);
-					doupdate();
-
-					if (menus__[item_selected](info) != 0)
-						break;
-
+					OPEN_MENU(item_selected);
 					break;
 
+				case 'w':
+				case 'W':
+					OPEN_MENU(5);
+					break;
+				
 				default:
 					break;
 			}

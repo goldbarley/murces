@@ -6,50 +6,28 @@
 
 #include <string.h>
 
-struct tui_layout3
+struct tui_layout6__
 {
 	struct prc_context *ctx;
+	struct prc_window *modlib_win;
 	struct prc_window *modloader_win;
-	struct prc_window *svsoft_win;
 	struct prc_window *search_win;
 	struct prc_window *modlist_win;
 	unsigned char init;
-} tui_layout3__ = {0};
+} tui_layout6__ = {0};
 
-int m3_init_windows(struct tui_info *info)
+int m6_init_windows(struct tui_info *info)
 {
-	if (tui_layout3__.init)
+	if (tui_layout6__.init)
 		return 0;
 
 	struct prc_context *ctx = &info->ctx;
 	int ret = 0;
 
-	struct prc_window *modloader_win = tui_layout3__.modloader_win;
-	struct prc_window *svsoft_win = tui_layout3__.svsoft_win;
-	struct prc_window *search_win = tui_layout3__.search_win;
-	struct prc_window *modlist_win = tui_layout3__.modlist_win;
-
-	if (memset(&svsoft_win->wbord, 0, sizeof(struct prc_border_desc))
-		== NULL)
-	{
-		eputs("Error: Failed to initialize window border.");
-		return -1;
-	}
-
-	svsoft_win->wpad.left = 2;
-	svsoft_win->wpad.right = ((mtstdbigwin->width << 1) / 3) + 1;
-	svsoft_win->wpad.top = (mtstdbigwin->height >> 1) + 1;
-	svsoft_win->wpad.bottom = 1;
-	svsoft_win->wpad.yes = TRUE;
-
-	svsoft_win->walign = PRC_ALIGN_NONE;
-
-	ret = prc_create_derwin(svsoft_win, mtstdbigwin, ctx);
-	if (ret != FN_SUCCESS)
-	{
-		eputs("Error: Failed to create derived window.");
-		return ret;
-	}
+	struct prc_window *modlib_win = tui_layout6__.modlib_win;
+	struct prc_window *modloader_win = tui_layout6__.modloader_win;
+	struct prc_window *search_win = tui_layout6__.search_win;
+	struct prc_window *modlist_win = tui_layout6__.modlist_win;
 
 	if (memset(&modloader_win->wbord, 0, sizeof(struct prc_border_desc))
 		== NULL)
@@ -57,16 +35,38 @@ int m3_init_windows(struct tui_info *info)
 		eputs("Error: Failed to initialize window border.");
 		return -1;
 	}
-	
+
 	modloader_win->wpad.left = 2;
-	modloader_win->wpad.right = svsoft_win->wpad.right;
-	modloader_win->wpad.top = mtstdlogwin->wpad.top;
-	modloader_win->wpad.bottom = svsoft_win->height + svsoft_win->wpad.bottom;
+	modloader_win->wpad.right = ((mtstdbigwin->width << 1) / 3) + 1;
+	modloader_win->wpad.top = (mtstdbigwin->height >> 1) + 1;
+	modloader_win->wpad.bottom = 1;
 	modloader_win->wpad.yes = TRUE;
-	
+
 	modloader_win->walign = PRC_ALIGN_NONE;
 
 	ret = prc_create_derwin(modloader_win, mtstdbigwin, ctx);
+	if (ret != FN_SUCCESS)
+	{
+		eputs("Error: Failed to create derived window.");
+		return ret;
+	}
+
+	if (memset(&modlib_win->wbord, 0, sizeof(struct prc_border_desc))
+		== NULL)
+	{
+		eputs("Error: Failed to initialize window border.");
+		return -1;
+	}
+	
+	modlib_win->wpad.left = 2;
+	modlib_win->wpad.right = modloader_win->wpad.right;
+	modlib_win->wpad.top = mtstdlogwin->wpad.top;
+	modlib_win->wpad.bottom = modloader_win->height + modloader_win->wpad.bottom;
+	modlib_win->wpad.yes = TRUE;
+	
+	modlib_win->walign = PRC_ALIGN_NONE;
+
+	ret = prc_create_derwin(modlib_win, mtstdbigwin, ctx);
 	if (ret != FN_SUCCESS)
 	{
 		eputs("Error: Failed to create derived window.");
@@ -80,7 +80,7 @@ int m3_init_windows(struct tui_info *info)
 		return -1;
 	}
 
-	search_win->wpad.left = modloader_win->width + modloader_win->wpad.left;
+	search_win->wpad.left = modlib_win->width + modlib_win->wpad.left;
 	search_win->wpad.right = mtstdlogwin->width + mtstdlogwin->wpad.right;
 	search_win->wpad.top = mtstdlogwin->wpad.top;
 	search_win->wpad.bottom = 
@@ -118,57 +118,28 @@ int m3_init_windows(struct tui_info *info)
 		return -1;
 	}
 
-	tui_layout3__.init = TRUE;
+	tui_layout6__.init = TRUE;
 
 	return 0;
 }
 
-void m3_destroy_layout3(void)
+void m6_destroy_layout6(void)
 {
-	prc_destroy_window(tui_layout3__.modloader_win, tui_layout3__.ctx);
-	prc_destroy_window(tui_layout3__.svsoft_win, tui_layout3__.ctx);
-	prc_destroy_window(tui_layout3__.search_win, tui_layout3__.ctx);
-	prc_destroy_window(tui_layout3__.modlist_win, tui_layout3__.ctx);
+	prc_destroy_window(tui_layout6__.modlib_win, tui_layout6__.ctx);
+	prc_destroy_window(tui_layout6__.modloader_win, tui_layout6__.ctx);
+	prc_destroy_window(tui_layout6__.search_win, tui_layout6__.ctx);
+	prc_destroy_window(tui_layout6__.modlist_win, tui_layout6__.ctx);
 }
 
-int m3_draw_layout3(void)
+int m6_draw_layout6(void)
 {
-	struct prc_context *ctx = tui_layout3__.ctx;
+	struct prc_context *ctx = tui_layout6__.ctx;
 	int ret = 0;
 
-	struct prc_window *modloader_win = tui_layout3__.modloader_win;
-	struct prc_window *svsoft_win = tui_layout3__.svsoft_win;
-	struct prc_window *search_win = tui_layout3__.search_win;
-	struct prc_window *modlist_win = tui_layout3__.modlist_win;
-
-
-	// mtstdlogwin->wpad.left = (mtstdbigwin->width << 1) / 3;
-	// mtstdlogwin->wpad.right = 2;
-	// mtstdlogwin->wpad.top = 2;
-	// mtstdlogwin->wpad.bottom = 1;
-	// mtstdlogwin->wpad.yes = TRUE;
-
-	// mtstdlogwin->walign = PRC_ALIGN_NONE;
-
-	// ret = prc_get_padded_wdesc(mtstdlogwin, mtstdbigwin, &mtstdlogwin->wpad);
-	// if (ret != FN_SUCCESS)
-	// {
-	// 	eputs("Error: Could not pad log window.");
-	// 	return -1;
-	// }
-
-	// if (mvderwin(mtstdlogwin->win, mtstdlogwin->y, mtstdlogwin->x) != OK)
-	// {
-	// 	eputs("Error: Could not move log window.");
-	// 	return -1;
-	// }
-
-	// if (wresize(mtstdlogwin->win, mtstdlogwin->height, mtstdlogwin->width)
-	// 	!= OK)
-	// {
-	// 	eputs("Error: Could not resize log window.");
-	// 	return -1;
-	// }
+	struct prc_window *modlib_win = tui_layout6__.modlib_win;
+	struct prc_window *modloader_win = tui_layout6__.modloader_win;
+	struct prc_window *search_win = tui_layout6__.search_win;
+	struct prc_window *modlist_win = tui_layout6__.modlist_win;
 	
 	ret = prc_draw_window_border(mtstdbigwin);
 	if (ret != FN_SUCCESS)
@@ -185,14 +156,14 @@ int m3_draw_layout3(void)
 		return ret;
 	}
 
-	ret = prc_draw_window_border(modloader_win);
+	ret = prc_draw_window_border(modlib_win);
 	if (ret != FN_SUCCESS)
 	{
 		eputs("Error: Failed to draw window border.");
 		return ret;
 	}
 
-	ret = prc_draw_window_border(svsoft_win);
+	ret = prc_draw_window_border(modloader_win);
 	if (ret != FN_SUCCESS)
 	{
 		eputs("Error: Failed to draw window border.");
@@ -223,25 +194,25 @@ int m3_draw_layout3(void)
 	return ret;
 }
 
-int menu3(struct tui_info *info)
+int menu6(struct tui_info *info)
 {
-	if (!tui_layout3__.init)
+	if (!tui_layout6__.init)
 	{
 		struct prc_context *ctx = &info->ctx;
 		int ret = 0;
 
-		struct prc_window *modloader_win = prc_get_freeaddr();
-		if (modloader_win == NULL)
+		struct prc_window *modlib_win = prc_get_freeaddr();
+		if (modlib_win == NULL)
 		{
 			eputs("Error: No memory in window pool.");
 			return -1;
 		}
 
-		struct prc_window *svsoft_win = prc_get_freeaddr();
-		if (svsoft_win == NULL)
+		struct prc_window *modloader_win = prc_get_freeaddr();
+		if (modloader_win == NULL)
 		{
 			eputs("Error: No memory in window pool.");
-			prc_destroy_window(modloader_win, ctx);
+			prc_destroy_window(modlib_win, ctx);
 			return -1;
 		}
 
@@ -249,8 +220,8 @@ int menu3(struct tui_info *info)
 		if (search_win == NULL)
 		{
 			eputs("Error: No memory in window pool.");
+			prc_destroy_window(modlib_win, ctx);
 			prc_destroy_window(modloader_win, ctx);
-			prc_destroy_window(svsoft_win, ctx);
 			return -1;
 		}
 
@@ -258,19 +229,19 @@ int menu3(struct tui_info *info)
 		if (modlist_win == NULL)
 		{
 			eputs("Error: No memory in window pool.");
+			prc_destroy_window(modlib_win, ctx);
 			prc_destroy_window(modloader_win, ctx);
-			prc_destroy_window(svsoft_win, ctx);
 			prc_destroy_window(search_win, ctx);
 			return -1;
 		}
 
-		tui_layout3__.modloader_win = modloader_win;
-		tui_layout3__.svsoft_win = svsoft_win;
-		tui_layout3__.search_win = search_win;
-		tui_layout3__.modlist_win = modlist_win;
-		tui_layout3__.ctx = &info->ctx;
+		tui_layout6__.modlib_win = modlib_win;
+		tui_layout6__.modloader_win = modloader_win;
+		tui_layout6__.search_win = search_win;
+		tui_layout6__.modlist_win = modlist_win;
+		tui_layout6__.ctx = &info->ctx;
 
-		ret = m3_init_windows(info);
+		ret = m6_init_windows(info);
 		if (ret != 0)
 		{
 			eputs("Failed to initialize layout.");
@@ -278,21 +249,21 @@ int menu3(struct tui_info *info)
 		}
 	}
 
-	if (m3_draw_layout3() != 0)
+	if (m6_draw_layout6() != 0)
 	{
 		eputs("Failed to draw layout.");
 		return -1;
 	}
 
-	 struct prc_window *modloader_win = tui_layout3__.modloader_win;
-	 struct prc_window *svsoft_win = tui_layout3__.svsoft_win;
-	 struct prc_window *search_win = tui_layout3__.search_win;
-	 struct prc_window *modlist_win = tui_layout3__.modlist_win;
-	 struct prc_context *ctx = tui_layout3__.ctx;
+	 struct prc_window *modlib_win = tui_layout6__.modlib_win;
+	 struct prc_window *modloader_win = tui_layout6__.modloader_win;
+	 struct prc_window *search_win = tui_layout6__.search_win;
+	 struct prc_window *modlist_win = tui_layout6__.modlist_win;
+	 struct prc_context *ctx = tui_layout6__.ctx;
 
 	wnoutrefresh(mtstdbigwin->win);
+	wnoutrefresh(modlib_win->win);
 	wnoutrefresh(modloader_win->win);
-	wnoutrefresh(svsoft_win->win);
 	wnoutrefresh(search_win->win);
 	wnoutrefresh(modlist_win->win);
 	doupdate();
