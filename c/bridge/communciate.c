@@ -1,3 +1,7 @@
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif /* _GNU_SOURCE */
+
 #include "communciate.h"
 #include "cJSON.h"
 #include "router.h"
@@ -108,7 +112,7 @@ char **search(const char *modBrowser, const char *query, const char *version,
   return results;
 }
 
-#include <signal.h>
+// #include <signal.h>
 
 void cleanup_orchestrator(int *orcIO) {
   if (orchestrator_pid != -1) {

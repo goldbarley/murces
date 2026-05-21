@@ -12,17 +12,29 @@
 #define eputs(s) \
 	do \
 	{ \
-		fputs(s, stderr); \
+		attron(COLOR_PAIR(CPID_ERR_MSG)); \
+		mvaddstr(0, 0, s); \
+		attroff(COLOR_PAIR(CPID_ERR_MSG)); \
+		getch(); \
 	} while (0)
 #define eprintf(...) \
 	do \
 	{ \
-		fprintf(stderr, __VA_ARGS__); \
+		attron(COLOR_PAIR(CPID_ERR_MSG)); \
+		mvwprintw(stdscr, 0, 0, __VA_ARGS__); \
+		attroff(COLOR_PAIR(CPID_ERR_MSG)); \
+		getch(); \
 	} while (0)
 #else
 #define eputs(s)
 #define eprintf(...)
 #endif /* NDEBUG */
+
+#define DRAW_LAYOUT__(n) m##n##_draw_layout##n
+#define DRAW_LAYOUT(n) DRAW_LAYOUT__(n)
+
+#define OPEN_MENU__(n) menu##n
+#define OPEN_MENU(n) OPEN_MENU__(n)
 
 #define MAX_MENU_ITEM_COUNT (20)
 #define MAX_MENU_ITEM_CHAR_COUNT (256)
@@ -32,12 +44,9 @@ enum cpid
 {
 	CPID_STDSCR = 1,
 	CPID_MM_DESC,
-	CPID_MM_CONTENT
+	CPID_MM_CONTENT,
+	CPID_ERR_MSG
 };
-
-#define CPID_STDSCR (CPID_STDSCR)
-#define CPID_MM_DESC (CPID_MM_DESC)
-#define CPID_MM_CONTENT (CPID_MM_CONTENT)
 
 enum mc_colors
 {
@@ -79,11 +88,8 @@ struct str_menu_items
 	uint64_t selected[(MAX_STR_MENU_ITEMS + 63) >> 6];
 };
 
-struct tui_pages
-{
-	int (*page0)(struct tui_info *);
-	int (*page1)(struct tui_info *);
-};
+extern struct prc_window *mtstdlogwin;
+extern struct prc_window *mtstdbigwin;
 
 int mm_init_windows(
 	struct prc_window *desc_win, struct prc_window *content_win,
@@ -110,7 +116,36 @@ int mtui_resize_windows(struct tui_info *info);
 
 int main_menu(struct tui_info *info);
 
-/* Do not remove attribute or will get compiler warning. */
-int menu1(struct tui_info* info) __attribute__((__unused__));
+void mm_destroy_layout0(void);
+
+/* MENU 1 */
+int menu1(struct tui_info *info);
+int DRAW_LAYOUT(1)(void);
+
+/* MENU 2 */
+int menu2(struct tui_info *info);
+int DRAW_LAYOUT(2)(void);
+
+/* MENU 3 */
+int menu3(struct tui_info* info);
+int m3_init_windows(struct tui_info *info);
+void m3_destroy_layout3(void);
+int DRAW_LAYOUT(3)(void);
+
+/* MENU 4 */
+int menu4(struct tui_info *info);
+int DRAW_LAYOUT(4)(void);
+
+/* MENU 5 */
+int menu5(struct tui_info *info);
+int DRAW_LAYOUT(5)(void);
+
+/* MENU 6 */
+int menu6(struct tui_info *info);
+int DRAW_LAYOUT(6)(void);
+
+/* MENU 7 */
+int menu7(struct tui_info *info);
+int DRAW_LAYOUT(7)(void);
 
 #endif /* MTUI_TUI_H */

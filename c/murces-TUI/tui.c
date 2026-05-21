@@ -9,6 +9,16 @@
 #include <string.h>
 #include <sys/select.h>
 
+struct tui_layout0__
+{
+	struct prc_context *ctx;
+	struct prc_window *content_win;
+	unsigned char init;
+} tui_layout0__ = {0};
+
+struct prc_window *mtstdlogwin = NULL;
+struct prc_window *mtstdbigwin = NULL;
+
 static struct menu_items menu_items0__ = {
 	.items = {
 		/* 1 Start/Stop server*/
@@ -46,18 +56,31 @@ static struct menu_items menu_items0__ = {
 	.selected = 1
 };
 
+static int (*menus__[7])(struct tui_info *) = {
+	NULL,
+	NULL,
+	menu3,
+	NULL,
+	NULL,
+	NULL,
+	NULL
+};
+
 int mm_init_windows(
 	struct prc_window *desc_win, struct prc_window *content_win,
 	struct prc_window *log_win,
 	struct tui_info *info)
 {
+	if (tui_layout0__.init)
+		return 0;
+
 	int ret = 0;
 
 	struct prc_context *ctx = &info->ctx;
 
 	if (memset(&desc_win->wbord, 0, sizeof(struct prc_border_desc)) == NULL)
 	{
-		eputs("Error: Failed to initialize window border.\n");
+		eputs("Error: Failed to initialize window border.");
 		return -1;
 	}
 
@@ -75,7 +98,7 @@ int mm_init_windows(
 	ret = prc_create_window(desc_win, ctx);
 	if (ret != FN_SUCCESS)
 	{
-		eputs("Error: Failed to create window.\n");
+		eputs("Error: Failed to create window.");
 		return ret;
 	}
 	// wbkgd(desc_win->win, COLOR_PAIR(CPID_MM_DESC));
@@ -83,7 +106,7 @@ int mm_init_windows(
 	content_win->parent = desc_win;
 	if (memset(&content_win->wbord, 0, sizeof(struct prc_border_desc)) == NULL)
 	{
-		eputs("Error: Failed to initialize border.\n");
+		eputs("Error: Failed to initialize border.");
 		return -1;
 	}
 
@@ -98,7 +121,7 @@ int mm_init_windows(
 	ret = prc_create_derwin(content_win, content_win->parent, ctx);
 	if (ret != FN_SUCCESS)
 	{
-		eputs("Error: Failed to create derived window.\n");
+		eputs("Error: Failed to create derived window.");
 		return ret;
 	}
 	// wbkgd(content_win->win, COLOR_PAIR(CPID_MM_CONTENT));
@@ -106,7 +129,7 @@ int mm_init_windows(
 	log_win->parent = desc_win;
 	if (memset(&log_win->wbord, 0, sizeof(struct prc_border_desc)) == NULL)
 	{
-		eputs("Error: Failed to initialize border.\n");
+		eputs("Error: Failed to initialize border.");
 		return -1;
 	}
 	log_win->wpad.left = content_win->wpad.left + content_win->width + 1;
@@ -118,7 +141,7 @@ int mm_init_windows(
 	ret = prc_create_derwin(log_win, log_win->parent, ctx);
 	if (ret != FN_SUCCESS)
 	{
-		eputs("Error: Failed to create derived window.\n");
+		eputs("Error: Failed to create derived window.");
 		return ret;
 	}
 	// wbkgd(log_win->win, COLOR_PAIR(CPID_MM_CONTENT));
@@ -126,34 +149,36 @@ int mm_init_windows(
 	ret = prc_draw_window_border(desc_win);
 	if (ret != FN_SUCCESS)
 	{
-		eputs("Error: Failed to draw window border.\n");
+		eputs("Error: Failed to draw window border.");
 		return ret;
 	}
 
 	ret = prc_window_title(desc_win, 0, 0, ctx);
 	if (ret != FN_SUCCESS)
 	{
-		eputs("Error: Failed to write window title.\n");
+		eputs("Error: Failed to write window title.");
 		return ret;
 	}
 
 	ret = prc_draw_window_border(content_win);
 	if (ret != FN_SUCCESS)
 	{
-		eputs("Error: Failed to draw window border.\n");
+		eputs("Error: Failed to draw window border.");
 		return ret;
 	}
 
 	ret = prc_draw_window_border(log_win);
 	if (ret != FN_SUCCESS)
 	{
-		eputs("Error: Failed to draw window border.\n");
+		eputs("Error: Failed to draw window border.");
 		return ret;
 	}
 
-	info->desc_win = desc_win;
-	info->content_win = content_win;
-	info->log_win = log_win;
+	mtstdbigwin = desc_win;
+	tui_layout0__.content_win = content_win;
+	mtstdlogwin = log_win;
+
+	tui_layout0__.init = TRUE;
 
 	return 0;
 }
@@ -319,12 +344,12 @@ int mm_insert_text(struct prc_window *win, short pair,
 	return 0;
 }
 
-int mtui_resize_windows(struct tui_info *info)
+int mtui_resize_windows0__(struct tui_layout0__ *layout)
 {
-	struct prc_context* ctx = &info->ctx;
-	struct prc_window *desc_win = info->desc_win;
-	struct prc_window *content_win = info->content_win;
-	struct prc_window *log_win = info->log_win;
+	struct prc_context* ctx = layout->ctx;
+	struct prc_window *desc_win = mtstdbigwin;
+	struct prc_window *content_win = layout->content_win;
+	struct prc_window *log_win = mtstdlogwin;
 
 	int ret = 0;
 
@@ -375,54 +400,63 @@ int mtui_resize_windows(struct tui_info *info)
 	return ret;
 }
 
+void mm_destroy_layout0(void)
+{
+
+	prc_destroy_window(tui_layout0__.content_win, tui_layout0__.ctx);
+}
+
 int main_menu(struct tui_info *info)
 {
 	struct prc_context *ctx = &info->ctx;
+	tui_layout0__.ctx = ctx;
 	int ret = 0;
 
 	struct prc_window *desc_win = prc_get_freeaddr();
 	if (desc_win == NULL)
 	{
-		eputs("Error: No memory in window pool.\n");
+		eputs("Error: No memory in window pool.");
 		return -1;
 	}
 
 	struct prc_window *content_win = prc_get_freeaddr();
 	if (content_win == NULL)
 	{
-		eputs("Error: No memory in window pool.\n");
+		eputs("Error: No memory in window pool.");
 		ret = -1;
 	}
 
 	struct prc_window *log_win = prc_get_freeaddr();
 	if (log_win == NULL)
 	{
-		eputs("Error: No memory in window pool.\n");
+		eputs("Error: No memory in window pool.");
 		ret = -1;
-		goto cleanup;
+		return ret;
 	}
 	else if (content_win == NULL)
-		goto cleanup;
+		return ret;
 
 	ret = mm_init_windows(desc_win, content_win, log_win, info);
 	if (ret == -1)
-		goto cleanup;
+		return ret;
 
 	if (nodelay(content_win->win, TRUE) != OK)
 	{
 		ret = -1;
-		goto cleanup;
+		return ret;
 	}
 
 	if (keypad(content_win->win, TRUE) != OK)
 	{
 		ret = -1;
-		goto cleanup;
+		return ret;
 	}
 
 	mm_insert_text(log_win, -1,
 		"VERY VERY BIG BIG LONG LONG TEXT TO TEST THE HOW LONG A MESSAGE IT CAN WRAP! I AM NOT GOING TO ADD LOGIC TO CHECK FOR WORDS AND SPACES TO WRAP WORDS PROPERLY SINCE IT IS TO GODDAMN COMPLICATED!",
 		4, 4, 2);
+	
+	// eputs("This is a test message.");
 
 	wnoutrefresh(stdscr);
 
@@ -446,54 +480,78 @@ int main_menu(struct tui_info *info)
 		{
 			c = fevt.detail;
 			
-			if (c == KEY_UP)
+			switch(c)
 			{
-				if (item_selected == 0)
+				case KEY_UP:
 				{
-					prc_use_event();
-					continue;
+					if (item_selected == 0)
+					{
+						prc_use_event();
+						continue;
+					}
+
+					chselect = TRUE;
+					menu_items0__.selected = 0;
+
+					if (mtui_rmhl_menu_item(&menu_items0__, item_selected)
+						!= 0)
+						return ret;
+
+					--item_selected;
+					PRC_SETBIT_1(menu_items0__.selected, item_selected);
+
+					break;
 				}
-
-				chselect = TRUE;
-				menu_items0__.selected = 0;
-
-				if (mtui_rmhl_menu_item(&menu_items0__, item_selected)
-					!= 0)
-					goto cleanup;
-
-				--item_selected;
-				PRC_SETBIT_1(menu_items0__.selected, item_selected);
-			}
-			else if (c == KEY_DOWN)
-			{
-				if (item_selected == menu_items0__.nitems - 1)
+				case KEY_DOWN:
 				{
-					prc_use_event();
-					continue;
+					if (item_selected == menu_items0__.nitems - 1)
+					{
+						prc_use_event();
+						continue;
+					}
+					
+					chselect = TRUE;
+					menu_items0__.selected = 0;
+
+					if (mtui_rmhl_menu_item(&menu_items0__, item_selected)
+						!= 0)
+						return ret;
+
+					++item_selected;
+					PRC_SETBIT_1(menu_items0__.selected, item_selected);
+
+					break;
 				}
-				
-				chselect = TRUE;
-				menu_items0__.selected = 0;
+				case KEY_RESIZE:
+					if (mtui_resize_windows0__(&tui_layout0__) != 0)
+						return ret;
+					
+					break;
 
-				if (mtui_rmhl_menu_item(&menu_items0__, item_selected)
-					!= 0)
-					goto cleanup;
+				case KEY_ENTER:
+				case '\n':
+				case '\r':
+					werase(mtstdbigwin->win);
+					wnoutrefresh(mtstdbigwin->win);
+					doupdate();
 
-				++item_selected;
-				PRC_SETBIT_1(menu_items0__.selected, item_selected);
+					if (menus__[item_selected](info) != 0)
+						break;
+
+					break;
+
+				default:
+					break;
 			}
-			else if (c == KEY_RESIZE)
-				if (mtui_resize_windows(info) != 0)
-					goto cleanup;
 
 			if (chselect)
 			{
-				wclear(content_win->win);
+				werase(content_win->win);
 				prc_draw_window_border(content_win);
 
 				if (mtui_highlight_menu_item(&menu_items0__, item_selected)
 					!= 0)
-					goto cleanup;
+					return ret;
 
 				if (mm_insert_menu_text(content_win, &menu_items0__,
 					4, 4, 2) != 0)
@@ -504,14 +562,12 @@ int main_menu(struct tui_info *info)
 
 			prc_use_event();
 		}
+		mvwprintw(stdscr, 0, 0, "%d", item_selected + 1);
+		wnoutrefresh(stdscr);
+		wnoutrefresh(mtstdlogwin->win);
 		doupdate();
 		wtimeout(content_win->win, 10);
 	} while (c != 'q' && c != 'Q');
-
-	cleanup:
-		prc_destroy_window(log_win, ctx);
-		prc_destroy_window(content_win, ctx);
-		prc_destroy_window(desc_win, ctx);
 
 	return ret;
 }

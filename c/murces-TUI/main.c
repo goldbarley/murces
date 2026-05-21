@@ -65,6 +65,7 @@ int main(int argc, char *argv[]) {
     init_pair(CPID_STDSCR, MC_COLOR_LIGHT_CYAN, MC_COLOR_DARK_BLUE);
     init_pair(CPID_MM_DESC, MC_COLOR_BLACK_BROWN, MC_COLOR_LIGHT_GREY);
     init_pair(CPID_MM_CONTENT, MC_COLOR_BLACK_BROWN, MC_COLOR_LIGHT_GREY);
+    init_pair(CPID_ERR_MSG, COLOR_WHITE, COLOR_RED);
 
     // bkgd(COLOR_PAIR(CPID_STDSCR));
   }
@@ -75,6 +76,8 @@ int main(int argc, char *argv[]) {
   }
 
 kill_em:
+  m3_destroy_layout3();
+  mm_destroy_layout0();
   prc_destroy_context(&info.ctx);
   prc_kill_mother();
 

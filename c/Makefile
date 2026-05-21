@@ -1,5 +1,5 @@
 CC := gcc
-CFLAGS := -Wall -g -std=c11 -MMD -MP
+CFLAGS := -Wall -g -std=gnu11 -MMD -MP
 LFLAGS := -lncurses -lpthread
 
 INC_FLAGS := -I./precursor/include -I./murces-TUI -I./bridge -I./manager

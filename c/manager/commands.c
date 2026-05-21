@@ -1,3 +1,7 @@
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif /* _GNU_SOURCE */
+
 #include <curses.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -55,7 +59,7 @@ int sv_Migrate(char *oldID, char *newID) {
 
   int r = snprintf(args, sizeof args, "--migrate %s %s",
     oldID, newID);
-  if (r < 0 || r >= sizeof args)
+  if (r < 0 || (unsigned long) r >= sizeof args)
     return 1;
 
   return svctrl(args);
