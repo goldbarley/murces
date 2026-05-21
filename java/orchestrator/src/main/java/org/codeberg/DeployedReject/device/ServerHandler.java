@@ -81,7 +81,7 @@ public class ServerHandler {
         paper();
         vanilla();
         forge();
-        response.add("serverList", list);
+        response.add("server", list);
         response.addProperty("status", 0);
         Communicator.printer(response);
         break;

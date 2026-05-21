@@ -1,19 +1,23 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#include <curses.h>
 #endif /* _GNU_SOURCE */
 
-#include "communciate.h"
 #include "cJSON.h"
+#include "communciate.h"
 #include "router.h"
 #include <iso646.h>
+#include <log.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <tui.h>
 #include <unistd.h>
 
 static pid_t orchestrator_pid = -1;
+static int *global_orcIO = NULL;
 
 int *init_orchestrator(int mode) {
   static int orcIO[3];
@@ -24,6 +28,7 @@ int *init_orchestrator(int mode) {
     if (access("./murces-orchestrator", X_OK) == 0) {
       orcIO[0] = -1;
       orcIO[1] = -1;
+      global_orcIO = orcIO;
       return orcIO;
     } else {
       return NULL;
@@ -53,6 +58,7 @@ int *init_orchestrator(int mode) {
     close(orcOutput[1]);
     orcIO[0] = orcInput[1];
     orcIO[1] = orcOutput[0];
+    global_orcIO = orcIO;
     return orcIO;
   } else {
     perror("fork failed");
@@ -109,10 +115,71 @@ char **search(const char *modBrowser, const char *query, const char *version,
   results[count] = NULL;
 
   cJSON_Delete(response);
+
+  mm_insert_text(mtstdlogwin, COLOR_PAIR(CPID_OK_MSG),
+                 logMurces("OK:", results), 4, 4, 2);
   return results;
 }
 
-// #include <signal.h>
+char **modLoader(const char *version) {
+  if (!global_orcIO || global_orcIO[0] == -1)
+    return NULL;
+
+  cJSON *temp = cJSON_CreateObject();
+  cJSON_AddStringToObject(temp, "type", "server");
+  cJSON_AddStringToObject(temp, "serverType", "none");
+  cJSON_AddStringToObject(temp, "gameVersion", version);
+  cJSON_AddStringToObject(temp, "loaderVersion", "none");
+  cJSON_AddNumberToObject(temp, "ram", 0);
+  cJSON_AddNumberToObject(temp, "job", 3);
+
+  char *request = cJSON_PrintUnformatted(temp);
+  cJSON_Delete(temp);
+
+  if (!request)
+    return NULL;
+
+  dprintf(global_orcIO[0], "%s\n", request);
+  free(request);
+
+  cJSON *response = get_server();
+
+  if (!response)
+    return NULL;
+
+  cJSON *statusItem = cJSON_GetObjectItem(response, "status");
+  int status = statusItem ? statusItem->valueint : 0;
+  if (status != 0) {
+    cJSON_Delete(response);
+    return NULL;
+  }
+
+  cJSON *serverList = cJSON_GetObjectItem(response, "serverList");
+  if (!serverList) {
+    cJSON_Delete(response);
+    return NULL;
+  }
+
+  int count = cJSON_GetArraySize(serverList);
+
+  char **results = malloc((count + 1) * sizeof(char *));
+  if (!results) {
+    cJSON_Delete(response);
+    return NULL;
+  }
+
+  for (int i = 0; i < count; i++) {
+    cJSON *item = cJSON_GetArrayItem(serverList, i);
+    results[i] = strdup(item->valuestring);
+  }
+  results[count] = NULL;
+
+  cJSON_Delete(response);
+
+  mm_insert_text(mtstdlogwin, COLOR_PAIR(CPID_OK_MSG),
+                 logMurces("OK:", results), 4, 4, 2);
+  return results;
+}
 
 void cleanup_orchestrator(int *orcIO) {
   if (orchestrator_pid != -1) {
@@ -129,5 +196,6 @@ void cleanup_orchestrator(int *orcIO) {
     waitpid(orchestrator_pid, &status, 0);
 
     orchestrator_pid = -1;
+    global_orcIO = NULL;
   }
 }

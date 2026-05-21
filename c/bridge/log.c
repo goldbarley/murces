@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-char *log(const char *prefix, char *const array[]) {
+char *logMurces(const char *prefix, char *const array[]) {
   if (!prefix) {
     prefix = "";
   }

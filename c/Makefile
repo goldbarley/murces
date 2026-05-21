@@ -7,7 +7,7 @@ INC_FLAGS := -I./precursor/include -I./murces-TUI -I./bridge -I./manager
 # The main application uses murces-TUI/main.c
 TUI_SRCS := $(wildcard murces-TUI/*.c)
 PRECURSOR_SRCS := $(wildcard precursor/src/*.c)
-BRIDGE_SRCS := bridge/communciate.c bridge/cJSON.c bridge/router.c
+BRIDGE_SRCS := bridge/communciate.c bridge/cJSON.c bridge/router.c bridge/log.c
 MANAGER_SRCS := manager/commands.c manager/server_properties.c manager/modfiles.c
 
 SRCS := $(TUI_SRCS) $(PRECURSOR_SRCS) $(BRIDGE_SRCS) $(MANAGER_SRCS)
@@ -40,7 +40,7 @@ clean:
 	@rm -rf $(BUILD_DIR)
 
 # Standalone Tests
-test_bridge: $(BUILD_DIR)/bridge/main.o $(BUILD_DIR)/bridge/communciate.o $(BUILD_DIR)/bridge/cJSON.o $(BUILD_DIR)/bridge/router.o
+test_bridge: $(BUILD_DIR)/bridge/main.o $(BUILD_DIR)/bridge/communciate.o $(BUILD_DIR)/bridge/cJSON.o $(BUILD_DIR)/bridge/router.o $(BUILD_DIR)/bridge/log.o
 	@echo "Linking test_bridge"
 	@$(CC) $^ -o $(BUILD_DIR)/$@ $(LFLAGS)
 

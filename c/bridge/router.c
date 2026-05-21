@@ -4,6 +4,10 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <stdlib.h>
+#include <curses.h>
+#include "tui.h"
+#include "log.h"
 
 #define POOL_SIZE 256
 
@@ -67,6 +71,10 @@ void *initRouter(void *temp) {
   initQueue(&qDownload);
   initQueue(&qServer);
 
+  char accum[32768];
+  int accum_len = 0;
+  accum[0] = '\0';
+
   while (flag) {
     int ret = poll(fds, 1, 100);
     if (ret <= 0)
@@ -75,33 +83,69 @@ void *initRouter(void *temp) {
     sem_wait(&semSuper);
 
     if (fds[0].revents & POLLIN) {
-      char buffer[16384];
-      ssize_t bytes_read = read(IOP[1], buffer, sizeof(buffer) - 1);
+      ssize_t bytes_read = read(IOP[1], accum + accum_len, sizeof(accum) - accum_len - 1);
       if (bytes_read <= 0) {
         sem_post(&semSuper);
         break;
       }
-      buffer[bytes_read] = '\0';
+      accum_len += bytes_read;
+      accum[accum_len] = '\0';
 
-      cJSON *response = cJSON_Parse(buffer);
-      if (!response) {
-        sem_post(&semSuper);
-        continue;
+      int start = 0;
+      for (int i = 0; i < accum_len; i++) {
+        if (accum[i] == '\n') {
+          accum[i] = '\0';
+          char *line = accum + start;
+
+          if (strlen(line) > 0) {
+            cJSON *response = cJSON_Parse(line);
+            if (response) {
+              cJSON *statusItem = cJSON_GetObjectItem(response, "status");
+              int status = statusItem ? statusItem->valueint : 0;
+
+              if (status != 0) {
+                cJSON *errorItem = cJSON_GetObjectItem(response, "error");
+                char *error_str = errorItem ? errorItem->valuestring : "Unknown error";
+                char *err_array[2] = { error_str, NULL };
+                char *logged_err = logMurces("ERR:", err_array);
+                if (logged_err) {
+                  mm_insert_text(mtstdlogwin, COLOR_PAIR(CPID_ERR_MSG), logged_err, 4, 4, 2);
+                  free(logged_err);
+                }
+                enqueue(&qSearch, response);
+              } else {
+                cJSON *typeItem = cJSON_GetObjectItem(response, "type");
+                char *type = typeItem ? typeItem->valuestring : "";
+
+                if (strcmp(type, "query") == 0) {
+                  enqueue(&qSearch, response);
+                } else if (strcmp(type, "download") == 0) {
+                  enqueue(&qDownload, response);
+                } else if (strcmp(type, "server") == 0) {
+                  enqueue(&qServer, response);
+                } else {
+                  cJSON_Delete(response);
+                }
+              }
+            }
+          }
+          start = i + 1;
+        }
       }
 
-      cJSON *typeItem = cJSON_GetObjectItem(response, "type");
-      cJSON *statusItem = cJSON_GetObjectItem(response, "status");
-      char *type = typeItem ? typeItem->valuestring : "";
-      int status = statusItem ? statusItem->valueint : 0;
+      if (start > 0) {
+        if (start < accum_len) {
+          memmove(accum, accum + start, accum_len - start);
+          accum_len -= start;
+        } else {
+          accum_len = 0;
+        }
+        accum[accum_len] = '\0';
+      }
 
-      if (strcmp(type, "query") == 0 || status == 1) {
-        enqueue(&qSearch, response);
-      } else if (strcmp(type, "download") == 0) {
-        enqueue(&qDownload, response);
-      } else if (strcmp(type, "server") == 0) {
-        enqueue(&qServer, response);
-      } else {
-        cJSON_Delete(response);
+      if (accum_len >= (int)sizeof(accum) - 1) {
+        accum_len = 0;
+        accum[0] = '\0';
       }
     }
 

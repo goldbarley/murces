@@ -15,6 +15,9 @@ int *init_orchestrator(int mode);
 char **search(const char *modBrowser, const char *query, const char *version,
               const char *modLoader, int *orcIO);
 
+// Returns a list of modloaders based on availability.
+char **modLoader(const char *version);
+
 // Shuts down the orchestrator and cleans up.
 void cleanup_orchestrator(int *orcIO);
 
