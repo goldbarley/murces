@@ -538,6 +538,11 @@ int main_menu(struct tui_info *info)
 				case 'W':
 					OPEN_MENU(5);
 					break;
+
+				case 'k':
+				case 'K':
+					kick_the_buddy();
+					break;
 				
 				default:
 					break;
@@ -569,4 +574,9 @@ int main_menu(struct tui_info *info)
 	} while (c != 'q' && c != 'Q');
 
 	return ret;
+}
+
+void kick_the_buddy(void)
+{
+	return;
 }
