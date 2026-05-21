@@ -1,6 +1,6 @@
-#include "tui.h"
 #include "communciate.h"
 #include "router.h"
+#include "tui.h"
 #include <assert.h>
 #include <limits.h>
 #include <prc/prc_context.h>
@@ -40,11 +40,10 @@ int main(int argc, char *argv[]) {
     goto kill_em;
   }
 
-  if (noecho() != OK)
-	{
-		ret = -1;
-		goto kill_em;
-	}
+  if (noecho() != OK) {
+    ret = -1;
+    goto kill_em;
+  }
 
   if (info.ctx.term_has_color) {
     start_color();
