@@ -1,5 +1,6 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#include <complex.h>
 #include <curses.h>
 #endif /* _GNU_SOURCE */
 
@@ -16,20 +17,17 @@
 #include <tui.h>
 #include <unistd.h>
 
-static pid_t orchestrator_pid = -1;
-static int *global_orcIO = NULL;
+int IOP[3] = {-1, -1, -1};
 
 int *init_orchestrator(int mode) {
-  static int orcIO[3];
-  if (orchestrator_pid != -1)
+  if (IOP[2] != -1)
     return NULL;
 
   if (mode == 0) {
     if (access("./murces-orchestrator", X_OK) == 0) {
-      orcIO[0] = -1;
-      orcIO[1] = -1;
-      global_orcIO = orcIO;
-      return orcIO;
+      IOP[0] = -1;
+      IOP[1] = -1;
+      return IOP;
     } else {
       return NULL;
     }
@@ -45,21 +43,20 @@ int *init_orchestrator(int mode) {
     return NULL;
   }
 
-  orchestrator_pid = fork();
+  IOP[2] = fork();
 
-  if (orchestrator_pid == 0) {
+  if (IOP[2] == 0) {
     dup2(orcInput[0], STDIN_FILENO);
     dup2(orcOutput[1], STDOUT_FILENO);
     execlp("./murces-orchestrator", "./murces-orchestrator", NULL);
     perror("execlp failed");
     exit(1);
-  } else if (orchestrator_pid > 0) {
+  } else if (IOP[2] > 0) {
     close(orcInput[0]);
     close(orcOutput[1]);
-    orcIO[0] = orcInput[1];
-    orcIO[1] = orcOutput[0];
-    global_orcIO = orcIO;
-    return orcIO;
+    IOP[0] = orcInput[1];
+    IOP[1] = orcOutput[0];
+    return IOP;
   } else {
     perror("fork failed");
     return NULL;
@@ -67,7 +64,12 @@ int *init_orchestrator(int mode) {
 }
 
 char **search(const char *modBrowser, const char *query, const char *version,
-              const char *modLoader, int *orcIO) {
+              const char *modLoader) {
+
+  for (int i = 0; i < 3; i++) {
+    if (IOP[i] == -1)
+      return NULL;
+  }
 
   cJSON *temp = cJSON_CreateObject();
   cJSON_AddStringToObject(temp, "type", "modding");
@@ -75,7 +77,7 @@ char **search(const char *modBrowser, const char *query, const char *version,
   cJSON_AddStringToObject(temp, "subType", "search");
   cJSON_AddStringToObject(temp, "modName", query);
   cJSON_AddStringToObject(temp, "version", version);
-  cJSON_AddStringToObject(temp, "modLoader", modLoader);
+  cJSON_AddStringToObject(temp, "loader", modLoader);
   cJSON_AddStringToObject(temp, "modId", "");
 
   char *request = cJSON_PrintUnformatted(temp);
@@ -84,7 +86,7 @@ char **search(const char *modBrowser, const char *query, const char *version,
   if (!request)
     return NULL;
 
-  dprintf(orcIO[0], "%s\n", request);
+  dprintf(IOP[0], "%s\n", request);
   free(request);
 
   cJSON *response = get_search();
@@ -122,8 +124,11 @@ char **search(const char *modBrowser, const char *query, const char *version,
 }
 
 char **modLoader(const char *version) {
-  if (!global_orcIO || global_orcIO[0] == -1)
-    return NULL;
+
+  for (int i = 0; i < 3; i++) {
+    if (IOP[i] == -1)
+      return NULL;
+  }
 
   cJSON *temp = cJSON_CreateObject();
   cJSON_AddStringToObject(temp, "type", "server");
@@ -139,7 +144,7 @@ char **modLoader(const char *version) {
   if (!request)
     return NULL;
 
-  dprintf(global_orcIO[0], "%s\n", request);
+  dprintf(IOP[0], "%s\n", request);
   free(request);
 
   cJSON *response = get_server();
@@ -181,21 +186,20 @@ char **modLoader(const char *version) {
   return results;
 }
 
-void cleanup_orchestrator(int *orcIO) {
-  if (orchestrator_pid != -1) {
+void cleanup_orchestrator() {
+  if (IOP[2] != -1) {
     cJSON *kill_req = cJSON_CreateObject();
     cJSON_AddStringToObject(kill_req, "type", "kill");
     char *kill_str = cJSON_PrintUnformatted(kill_req);
     if (kill_str) {
-      dprintf(orcIO[0], "%s\n", kill_str);
+      dprintf(IOP[0], "%s\n", kill_str);
       free(kill_str);
     }
     cJSON_Delete(kill_req);
 
     int status;
-    waitpid(orchestrator_pid, &status, 0);
+    waitpid(IOP[2], &status, 0);
 
-    orchestrator_pid = -1;
-    global_orcIO = NULL;
+    IOP[0] = IOP[1] = IOP[2] = -1;
   }
 }

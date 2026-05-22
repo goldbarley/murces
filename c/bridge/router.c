@@ -1,17 +1,17 @@
 #include "cJSON.h"
+#include "log.h"
+#include "tui.h"
+#include <curses.h>
 #include <poll.h>
 #include <semaphore.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <stdlib.h>
-#include <curses.h>
-#include "tui.h"
-#include "log.h"
 
 #define POOL_SIZE 256
 
-static int flag = 0;
+static short flag = 0;
 
 typedef struct {
   cJSON *pool[POOL_SIZE];
@@ -57,6 +57,7 @@ cJSON *dequeue(responseQueue *q) {
 
   return response;
 }
+short ready = 0;
 
 void *initRouter(void *temp) {
 
@@ -83,7 +84,8 @@ void *initRouter(void *temp) {
     sem_wait(&semSuper);
 
     if (fds[0].revents & POLLIN) {
-      ssize_t bytes_read = read(IOP[1], accum + accum_len, sizeof(accum) - accum_len - 1);
+      ssize_t bytes_read =
+          read(IOP[1], accum + accum_len, sizeof(accum) - accum_len - 1);
       if (bytes_read <= 0) {
         sem_post(&semSuper);
         break;
@@ -103,13 +105,17 @@ void *initRouter(void *temp) {
               cJSON *statusItem = cJSON_GetObjectItem(response, "status");
               int status = statusItem ? statusItem->valueint : 0;
 
-              if (status != 0) {
+              if (status == 10)
+                ready = 1;
+              else if (status != 0) {
                 cJSON *errorItem = cJSON_GetObjectItem(response, "error");
-                char *error_str = errorItem ? errorItem->valuestring : "Unknown error";
-                char *err_array[2] = { error_str, NULL };
+                char *error_str =
+                    errorItem ? errorItem->valuestring : "Unknown error";
+                char *err_array[2] = {error_str, NULL};
                 char *logged_err = logMurces("ERR:", err_array);
                 if (logged_err) {
-                  mm_insert_text(mtstdlogwin, COLOR_PAIR(CPID_ERR_MSG), logged_err, 4, 4, 2);
+                  mm_insert_text(mtstdlogwin, COLOR_PAIR(CPID_ERR_MSG),
+                                 logged_err, 4, 4, 2);
                   free(logged_err);
                 }
                 enqueue(&qSearch, response);

@@ -1,5 +1,6 @@
 org/codeberg/DeployedReject/utils/NetworkUtils.class
 org/codeberg/DeployedReject/utils/ErrorHelper.class
+org/codeberg/DeployedReject/ModAPI.class
 org/codeberg/DeployedReject/utils/Shell.class
 org/codeberg/DeployedReject/utils/Communicator.class
 org/codeberg/DeployedReject/mods/CurseForge.class

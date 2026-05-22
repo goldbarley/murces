@@ -10,5 +10,5 @@ void cleanupRouter();
 cJSON *get_search();
 cJSON *get_download();
 cJSON *get_server();
-
+extern volatile short ready;
 #endif

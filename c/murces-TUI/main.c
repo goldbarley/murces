@@ -1,35 +1,50 @@
 #include "communciate.h"
-#include "router.h"
 #include "tui.h"
+#include <../bridge/log.h>
 #include <assert.h>
 #include <limits.h>
 #include <prc/prc_context.h>
-#include <pthread.h>
 #include <stdio.h>
 
 _Static_assert(CHAR_BIT <= 8, "Incompatible device.");
-int threadStarter(void);
-pthread_t router;
+
+#include <unistd.h>
 
 int main(int argc, char *argv[]) {
 
+  int flag = 0;
   if (argc > 2) {
     switch (argv[1][0]) {
-    case 'k':
-      if (argc == 3)
-        threadStarter();
-      break;
+    //./murces server
     case 's':
-      if (argc == 8)
+      if (argc == 6) {
         threadStarter();
+        flag = 1;
+      }
       break;
+    //./murces modding
     case 'm':
-      if (argc == 9)
+      if (argc == 7) {
         threadStarter();
+        flag = 1;
+
+        switch (argv[2][0]) {
+        //./murces modding search modBrowser query version modLoader
+        case 's':
+          printf("%s\n", logMurces("RESULTS:",
+                                   search(argv[3], argv[4], argv[5], argv[6])));
+          break;
+        }
+      }
       break;
     default:
       printf("Messy Parameters, ignoring");
     }
+  }
+
+  if (flag) {
+    threadKiller();
+    return 0;
   }
 
   struct tui_info info = {0};
@@ -83,14 +98,4 @@ kill_em:
   prc_kill_mother();
 
   return ret;
-}
-
-int threadStarter(void) {
-  void *IOP = init_orchestrator(1);
-
-  controlRouter(1);
-
-  if (pthread_create(&router, NULL, initRouter, IOP) != 0)
-    return -1;
-  return 0;
 }

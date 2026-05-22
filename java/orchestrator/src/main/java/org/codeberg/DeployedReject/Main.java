@@ -48,6 +48,10 @@ public class Main {
     ExecutorService worker = Executors.newCachedThreadPool();
     Communicator.startPrinter();
 
+    JsonObject bootup = new JsonObject();
+    bootup.addProperty("status", 10);
+    Communicator.printer(bootup);
+
     while (true) {
 
       String temp = sc.nextLine();
