@@ -64,7 +64,7 @@ static struct menu_items menu_items0__ = {
 static int (*menus__[7])(struct tui_info *) = {
 	NULL,
 	NULL,
-	NULL,
+	menu3,
 	NULL,
 	NULL,
 	menu6,
@@ -537,6 +537,11 @@ int main_menu(struct tui_info *info)
 				case '\n':
 				case '\r':
 					OPEN_MENU(item_selected);
+					break;
+
+				case 'i':
+				case 'I':
+					OPEN_MENU(2);
 					break;
 
 				case 'w':

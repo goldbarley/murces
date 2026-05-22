@@ -2,7 +2,6 @@
 #include <prc/prc_window.h>
 
 #include "tui.h"
-#include "utlprc/types.h"
 
 #include <string.h>
 
@@ -125,6 +124,9 @@ int m6_init_windows(struct tui_info *info)
 
 void m6_destroy_layout6(void)
 {
+	if (!tui_layout6__.init)
+		return;
+
 	prc_destroy_window(tui_layout6__.modlib_win, tui_layout6__.ctx);
 	prc_destroy_window(tui_layout6__.modloader_win, tui_layout6__.ctx);
 	prc_destroy_window(tui_layout6__.search_win, tui_layout6__.ctx);
@@ -255,11 +257,11 @@ int menu6(struct tui_info *info)
 		return -1;
 	}
 
-	 struct prc_window *modlib_win = tui_layout6__.modlib_win;
-	 struct prc_window *modloader_win = tui_layout6__.modloader_win;
-	 struct prc_window *search_win = tui_layout6__.search_win;
-	 struct prc_window *modlist_win = tui_layout6__.modlist_win;
-	 struct prc_context *ctx = tui_layout6__.ctx;
+	struct prc_window *modlib_win = tui_layout6__.modlib_win;
+	struct prc_window *modloader_win = tui_layout6__.modloader_win;
+	struct prc_window *search_win = tui_layout6__.search_win;
+	struct prc_window *modlist_win = tui_layout6__.modlist_win;
+	// struct prc_context *ctx = tui_layout6__.ctx;
 
 	wnoutrefresh(mtstdbigwin->win);
 	wnoutrefresh(modlib_win->win);

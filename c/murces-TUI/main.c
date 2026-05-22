@@ -92,6 +92,7 @@ int main(int argc, char *argv[]) {
   }
 
 kill_em:
+  m3_destroy_layout3();
   m6_destroy_layout6();
   mm_destroy_layout0();
   prc_destroy_context(&info.ctx);
